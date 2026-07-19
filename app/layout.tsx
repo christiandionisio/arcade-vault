@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Press_Start_2P, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import UserProvider from "@/components/UserProvider";
+import Nav from "@/components/Nav";
 
 const pressStart2P = Press_Start_2P({
   weight: "400",
@@ -35,6 +36,7 @@ export default function RootLayout({
         <div className="av-noise" />
         <UserProvider>
           <div id="root">
+            <Nav />
             {children}
             <footer
               style={{
