@@ -8,14 +8,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Arcade Vault — online gaming platform where players compete for points. Early-stage Next.js app. Uses Spec Driven Design via `/spec` and `/spec-impl` skills.
 
-## Commands
-
-```bash
-npm run dev      # dev server (localhost:3000)
-npm run build    # production build
-npm run lint     # ESLint v9
-npm run start    # production server (after build)
-```
 
 ## Stack & Versions
 
@@ -25,6 +17,9 @@ npm run start    # production server (after build)
 | React | 19.2.4 | Server Components default in App Router |
 | Tailwind CSS | 4.x | `@import "tailwindcss"` syntax, `@theme inline` for CSS vars — NOT v3 `@tailwind` directives |
 | TypeScript | 5.x | Strict mode |
+
+## Skills
+Use always /frontend-design to desing user interface.
 
 ## Architecture
 
