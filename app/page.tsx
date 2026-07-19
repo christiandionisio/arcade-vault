@@ -1,65 +1,85 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import Link from "next/link";
+import { GAMES, CATS } from "@/app/data/games";
+
+export default function LibraryPage() {
+  const [query, setQuery] = useState("");
+  const [cat, setCat] = useState("TODOS");
+
+  const filtered = GAMES.filter((g) => {
+    const matchCat = cat === "TODOS" || g.cat === cat;
+    const matchQ = g.title.toLowerCase().includes(query.toLowerCase());
+    return matchCat && matchQ;
+  });
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="av-main fade-in">
+      <div className="av-hero">
+        <h1>ARCADE VAULT</h1>
+        <p className="sub">
+          INSERT COIN TO PLAY <span className="blink">_</span>
+        </p>
+      </div>
+
+      <div className="av-filters">
+        <div className="av-search">
+          <span className="ico">▶</span>
+          <input
+            type="text"
+            placeholder="BUSCAR JUEGO..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="av-chips">
+          {CATS.map((c) => (
+            <button
+              key={c}
+              className={`chip${cat === c ? " active" : ""}`}
+              onClick={() => setCat(c)}
+            >
+              {c}
+            </button>
+          ))}
         </div>
-      </main>
-    </div>
+      </div>
+
+      <div className="av-grid">
+        {filtered.map((game) => (
+          <Link key={game.id} href={`/games/${game.id}`} style={{ textDecoration: "none" }}>
+            <div className="card">
+              <div className="cover">
+                <div className={`cover-bg ${game.cover}`} />
+                <span className="label">{game.cat}</span>
+              </div>
+              <div className="meta">
+                <div className="title">{game.title}</div>
+                <div className="desc">{game.short}</div>
+                <div className="row">
+                  <div className="score-badge">
+                    <span>MEJOR</span>
+                    <b>{game.best > 0 ? game.best.toLocaleString() : "—"}</b>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span className="mono" style={{ fontSize: "11px", color: "var(--ink-faint)" }}>
+                      {game.plays} partidas
+                    </span>
+                    <button
+                      className="btn"
+                      style={{ padding: "8px 14px", fontSize: "9px" }}
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      JUGAR
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </main>
   );
 }
