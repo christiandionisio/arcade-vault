@@ -1,65 +1,104 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import Link from "next/link";
+import { GAMES, CATS } from "@/app/data/games";
+
+function GameCard({ game }: { game: (typeof GAMES)[0] }) {
+  function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    el.style.transform = `translateY(-6px) rotateX(${-py * 6}deg) rotateY(${px * 8}deg)`;
+  }
+  function onLeave(e: React.MouseEvent<HTMLDivElement>) {
+    e.currentTarget.style.transform = "";
+  }
+
+  const btnClass = `btn${game.color === "#ff006e" ? " magenta" : game.color === "#f5ff00" ? " yellow" : ""}`;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <Link href={`/games/${game.id}`} style={{ textDecoration: "none" }}>
+      <div className="card" onMouseMove={onMove} onMouseLeave={onLeave}>
+        <div className="cover">
+          <div className={`cover-bg ${game.cover}`} />
+          <div className="label">{game.cat}</div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="meta">
+          <div className="title">{game.title}</div>
+          <div className="desc">{game.short}</div>
+          <div className="row">
+            <div className="score-badge">
+              <span>MEJOR PUNTUACIÓN</span>
+              <b>{game.best > 0 ? game.best.toLocaleString("es-ES") : "—"}</b>
+            </div>
+            <button
+              className={btnClass}
+              onClick={(e) => e.preventDefault()}
+            >
+              JUGAR
+            </button>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </Link>
+  );
+}
+
+export default function LibraryPage() {
+  const [query, setQuery] = useState("");
+  const [cat, setCat] = useState("TODOS");
+
+  const filtered = GAMES.filter((g) => {
+    const matchCat = cat === "TODOS" || g.cat === cat;
+    const matchQ = g.title.toLowerCase().includes(query.toLowerCase());
+    return matchCat && matchQ;
+  });
+
+  return (
+    <main className="av-main fade-in">
+      <section className="av-hero">
+        <h1 className="flicker">ARCADE VAULT</h1>
+        <div className="sub">
+          INSERTA UNA MONEDA PARA JUGAR <span className="blink">_</span>
+        </div>
+      </section>
+
+      <div className="av-filters">
+        <div className="av-search">
+          <span className="ico">⌕</span>
+          <input
+            type="text"
+            placeholder="Buscar un juego por nombre…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <div className="av-chips">
+          {CATS.map((c) => (
+            <button
+              key={c}
+              className={`chip${cat === c ? " active" : ""}`}
+              onClick={() => setCat(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="av-grid">
+        {filtered.map((game) => (
+          <GameCard key={game.id} game={game} />
+        ))}
+        {filtered.length === 0 && (
+          <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 80, color: "var(--ink-faint)" }}>
+            <div className="pixel" style={{ fontSize: 14, color: "var(--magenta)", marginBottom: 12 }}>NO HAY RESULTADOS</div>
+            <div>Intenta otra búsqueda o categoría.</div>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
