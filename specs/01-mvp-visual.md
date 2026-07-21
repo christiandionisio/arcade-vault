@@ -1,7 +1,7 @@
 ---
 spec: 01-mvp-visual
 title: MVP Visual — Arcade Vault
-state: aprobado
+state: implementado
 date: 2026-07-19
 objective: Implementar las 5 pantallas visuales de Arcade Vault en Next.js App Router sin lógica de juego real.
 dependencies: ninguna
@@ -71,22 +71,22 @@ Estado runtime (no en archivo):
 
 ## Criterios de aceptación
 
-- [ ] `/` carga con hero, buscador, chips de categoría y grid de 8 juegos
-- [ ] Filtro por categoría y búsqueda por nombre funcionan sin recarga
-- [ ] Click en card o "JUGAR" navega a `/games/[id]`
-- [ ] `/games/[id]` muestra cover, stats, leaderboard de 10 entradas y botón "JUGAR AHORA"
-- [ ] `/games/[id]/play` muestra HUD con jugador/puntuación/vidas/nivel y pantalla CRT animada
-- [ ] Botón PAUSA muestra overlay "EN PAUSA"; REANUDAR lo cierra
-- [ ] Botón FIN abre modal con puntuación, input de nombre y "GUARDAR PUNTUACIÓN"
-- [ ] Después de guardar aparece toast `▸ PUNTUACIÓN GUARDADA_`
-- [ ] `/auth` muestra tabs Login/Registro; formulario cambia campos según tab activo
-- [ ] Login guarda `av_user` en localStorage; Nav muestra nombre del usuario
-- [ ] "JUGAR COMO INVITADO" navega a `/` sin guardar sesión
-- [ ] Sign out borra `av_user` y Nav vuelve a mostrar "Iniciar Sesión"
-- [ ] `/hall` muestra pódium top 3 y tabla de 12 entradas; tabs cambian el juego activo
-- [ ] Usuario logueado ve su fila marcada en amarillo en `/hall`
-- [ ] Nav es sticky, responsive; hamburger abre panel lateral en mobile
-- [ ] `.av-bg` y `.av-noise` visibles en todas las rutas
+- [x] `/` carga con hero, buscador, chips de categoría y grid de 8 juegos
+- [x] Filtro por categoría y búsqueda por nombre funcionan sin recarga
+- [x] Click en card o "JUGAR" navega a `/games/[id]`
+- [x] `/games/[id]` muestra cover, stats, leaderboard de 10 entradas y botón "JUGAR AHORA"
+- [x] `/games/[id]/play` muestra HUD con jugador/puntuación/vidas/nivel y pantalla CRT animada
+- [x] Botón PAUSA muestra overlay "EN PAUSA"; REANUDAR lo cierra
+- [x] Botón FIN abre modal con puntuación, input de nombre y "GUARDAR PUNTUACIÓN"
+- [x] Después de guardar aparece toast `▸ PUNTUACIÓN GUARDADA_`
+- [x] `/auth` muestra tabs Login/Registro; formulario cambia campos según tab activo
+- [x] Login guarda `av_user` en localStorage; Nav muestra nombre del usuario
+- [x] "JUGAR COMO INVITADO" navega a `/` sin guardar sesión
+- [x] Sign out borra `av_user` y Nav vuelve a mostrar "Iniciar Sesión"
+- [x] `/hall` muestra pódium top 3 y tabla de 12 entradas; tabs cambian el juego activo
+- [x] Usuario logueado ve su fila marcada en amarillo en `/hall`
+- [x] Nav es sticky, responsive; hamburger abre panel lateral en mobile
+- [x] `.av-bg` y `.av-noise` visibles en todas las rutas
 
 ## Decisiones tomadas y descartadas
 

@@ -12,9 +12,14 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
 
   const links = [
-    { href: "/", label: "BIBLIOTECA" },
-    { href: "/hall", label: "SALÓN" },
+    { href: "/", label: "Biblioteca" },
+    { href: "/hall", label: "Salón de la Fama" },
   ];
+
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/" || pathname.startsWith("/games");
+    return pathname === href;
+  };
 
   function handleLogout() {
     logout();
@@ -27,12 +32,15 @@ export default function Nav() {
       <nav className="av-nav">
         <Link href="/" className="logo">
           <div className="logo-mark" />
-          <span className="logo-text neon-cyan">ARCADE VAULT</span>
+          <div className="logo-text">
+            <span className="neon-cyan">ARCADE </span>
+            <span className="neon-magenta">VAULT</span>
+          </div>
         </Link>
 
         <div className="links">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className={pathname === l.href ? "active" : ""}>
+            <Link key={l.href} href={l.href} className={isActive(l.href) ? "active" : ""}>
               {l.label}
             </Link>
           ))}
@@ -42,69 +50,53 @@ export default function Nav() {
 
         <div className="coin-counter">
           <div className="coin" />
-          <span>00</span>
+          <span>CRÉDITOS · 03</span>
         </div>
 
         {user ? (
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }} className="auth-btn">
-            <span className="pixel" style={{ fontSize: "9px", color: "var(--cyan)", letterSpacing: "0.1em" }}>
-              {user.name}
-            </span>
-            <button className="btn ghost" style={{ padding: "8px 14px", fontSize: "9px" }} onClick={handleLogout}>
-              SALIR
-            </button>
-          </div>
+          <button className="btn ghost auth-btn" onClick={handleLogout}>
+            {user.name} ▾
+          </button>
         ) : (
           <Link href="/auth" className="auth-btn">
-            <span className="btn" style={{ padding: "10px 16px", fontSize: "9px" }}>INICIAR SESIÓN</span>
+            <button className="btn">Iniciar Sesión</button>
           </Link>
         )}
 
         <button
-          className="hamburger btn ghost"
-          style={{ padding: "8px 12px", fontSize: "11px" }}
+          className="btn ghost hamburger"
           onClick={() => setOpen(true)}
-          aria-label="Abrir menú"
+          aria-label="Menú"
         >
-          ☰
+          ≡
         </button>
       </nav>
 
       <div className={`av-mobile-backdrop${open ? " open" : ""}`} onClick={() => setOpen(false)} />
-      <div className={`av-mobile-panel${open ? " open" : ""}`}>
-        <button
-          className="btn ghost"
-          style={{ alignSelf: "flex-end", padding: "8px 12px", fontSize: "11px", marginBottom: "8px" }}
-          onClick={() => setOpen(false)}
-        >
-          ✕
-        </button>
+      <aside className={`av-mobile-panel${open ? " open" : ""}`}>
+        <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>MENÚ</div>
         {links.map((l) => (
           <Link
             key={l.href}
             href={l.href}
-            className={pathname === l.href ? "active" : ""}
+            className={isActive(l.href) ? "active" : ""}
             onClick={() => setOpen(false)}
           >
             {l.label}
           </Link>
         ))}
-        <div className="divider" />
-        {user ? (
-          <>
-            <span className="pixel" style={{ fontSize: "9px", color: "var(--cyan)", padding: "14px 12px" }}>
-              {user.name}
-            </span>
-            <button className="btn ghost" onClick={handleLogout} style={{ marginTop: "8px" }}>
-              CERRAR SESIÓN
-            </button>
-          </>
-        ) : (
-          <Link href="/auth" className={pathname === "/auth" ? "active" : ""} onClick={() => setOpen(false)}>
-            INICIAR SESIÓN
-          </Link>
-        )}
-      </div>
+        <Link
+          href="/auth"
+          className={pathname === "/auth" ? "active" : ""}
+          onClick={() => setOpen(false)}
+        >
+          {user ? "Cuenta" : "Iniciar Sesión"}
+        </Link>
+        <div style={{ flex: 1 }} />
+        <div className="pixel" style={{ fontSize: 9, color: "var(--ink-faint)", letterSpacing: "0.16em" }}>
+          CRÉDITOS · 03
+        </div>
+      </aside>
     </>
   );
 }
