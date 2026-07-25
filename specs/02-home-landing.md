@@ -1,7 +1,7 @@
 ---
 spec: 02-home-landing
 title: Home Landing Page — Arcade Vault
-state: approved
+state: implementado
 date: 2026-07-24
 objective: Crear la landing page en `/` basada en el template home.jsx y mover la biblioteca a `/games`.
 dependencies: 01-mvp-visual
@@ -34,22 +34,22 @@ dependencies: 01-mvp-visual
 
 ## Criterios de aceptación
 
-- [ ] `/` carga la landing page con hero, eyebrow "▸ INSERTA UNA MONEDA_", título de 3 líneas y dos CTAs
-- [ ] FloatingSilhouettes (8 SVGs pixel art) visibles y animados en el hero
-- [ ] Scroll revela secciones con animación `.reveal` (IntersectionObserver)
-- [ ] Sección "¿POR QUÉ ARCADE VAULT?" muestra 4 feature cards con íconos pixel SVG
-- [ ] Mini-rail muestra exactamente 6 juegos (GAMES.slice(0,6)); click en card navega a `/games/[id]`
-- [ ] Botón "VER TODOS LOS JUEGOS →" navega a `/games`
-- [ ] Sección Stats muestra 3 bloques: "12+", "MILES", "GLOBAL"
-- [ ] Sección "ACTIVIDAD EN VIVO" muestra ticker de 7 scores y top 5 jugadores hardcodeados
-- [ ] Botón "VER SALÓN →" navega a `/hall`
-- [ ] Sección PRICING muestra card "$0 / SIEMPRE" y FAQ con 3 preguntas
-- [ ] Botón "EMPEZAR GRATIS →" navega a `/auth`
-- [ ] Sección final "¿LISTO PARA JUGAR?" visible; botón "INSERTAR MONEDA →" navega a `/games`
-- [ ] `/games` sirve la biblioteca (grid de juegos) sin regresión visual
-- [ ] Nav muestra enlace "INICIO" activo en `/` y "JUEGOS" activo en `/games`
-- [ ] Screenshot `.playwright-screenshoots/home.png` capturado y no vacío
-- [ ] Screenshot `.playwright-screenshoots/games.png` capturado y no vacío
+- [x] `/` carga la landing page con hero, eyebrow "▸ INSERTA UNA MONEDA_", título de 3 líneas y dos CTAs
+- [x] FloatingSilhouettes (8 SVGs pixel art) visibles y animados en el hero
+- [x] Scroll revela secciones con animación `.reveal` (IntersectionObserver)
+- [x] Sección "¿POR QUÉ ARCADE VAULT?" muestra 4 feature cards con íconos pixel SVG
+- [x] Mini-rail muestra exactamente 6 juegos (GAMES.slice(0,6)); click en card navega a `/games/[id]`
+- [x] Botón "VER TODOS LOS JUEGOS →" navega a `/games`
+- [x] Sección Stats muestra 3 bloques: "12+", "MILES", "GLOBAL"
+- [x] Sección "ACTIVIDAD EN VIVO" muestra ticker de 7 scores y top 5 jugadores hardcodeados
+- [x] Botón "VER SALÓN →" navega a `/hall`
+- [x] Sección PRICING muestra card "$0 / SIEMPRE" y FAQ con 3 preguntas
+- [x] Botón "EMPEZAR GRATIS →" navega a `/auth`
+- [x] Sección final "¿LISTO PARA JUGAR?" visible; botón "INSERTAR MONEDA →" navega a `/games`
+- [x] `/games` sirve la biblioteca (grid de juegos) sin regresión visual
+- [x] Nav muestra enlace "INICIO" activo en `/` y "JUEGOS" activo en `/games`
+- [x] Screenshot `.playwright-screenshoots/home.png` capturado y no vacío
+- [x] Screenshot `.playwright-screenshoots/games.png` capturado y no vacío
 
 ## Decisiones tomadas y descartadas
 

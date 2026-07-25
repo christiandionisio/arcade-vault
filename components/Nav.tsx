@@ -12,12 +12,14 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
 
   const links = [
-    { href: "/", label: "Biblioteca" },
+    { href: "/", label: "Inicio" },
+    { href: "/games", label: "Biblioteca" },
     { href: "/hall", label: "Salón de la Fama" },
   ];
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/" || pathname.startsWith("/games");
+    if (href === "/games") return pathname === "/games" || pathname.startsWith("/games/");
+    if (href === "/") return pathname === "/";
     return pathname === href;
   };
 
