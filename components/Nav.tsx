@@ -15,6 +15,7 @@ export default function Nav() {
     { href: "/", label: "Inicio" },
     { href: "/games", label: "Biblioteca" },
     { href: "/hall", label: "Salón de la Fama" },
+    { href: "/about", label: "Acerca de" },
   ];
 
   const isActive = (href: string) => {
