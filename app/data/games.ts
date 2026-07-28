@@ -74,7 +74,7 @@ export const GAMES: Game[] = [
     plays: "512K",
   },
   {
-    id: "rocas",
+    id: "asteroids",
     title: "ROCAS",
     short: "Destruye asteroides. Sobrevive.",
     long: "Nave en campo abierto, asteroides de todos los tamaños. Los grandes se fragmentan en medianos, los medianos en pequeños. A partir del nivel 5 aparecen OVNIs hostiles.",
@@ -108,13 +108,41 @@ export const GAMES: Game[] = [
   },
 ];
 
-export const CATS: string[] = ["TODOS", "ARCADE", "PUZZLE", "SHOOTER", "VERSUS"];
+export const CATS: string[] = [
+  "TODOS",
+  "ARCADE",
+  "PUZZLE",
+  "SHOOTER",
+  "VERSUS",
+];
 
 const NAMES = [
-  "ACE", "BLITZ", "COBRA", "DASH", "ECHO", "FLUX", "GRIM", "HAWK",
-  "IRON", "JOLT", "KAZE", "LYNX", "MACH", "NOVA", "ONYX", "PIKE",
-  "QUAD", "RAZE", "SYNC", "TIDE", "UNIT", "VEGA", "WARP", "XRAY",
-  "YUKI", "ZERO",
+  "ACE",
+  "BLITZ",
+  "COBRA",
+  "DASH",
+  "ECHO",
+  "FLUX",
+  "GRIM",
+  "HAWK",
+  "IRON",
+  "JOLT",
+  "KAZE",
+  "LYNX",
+  "MACH",
+  "NOVA",
+  "ONYX",
+  "PIKE",
+  "QUAD",
+  "RAZE",
+  "SYNC",
+  "TIDE",
+  "UNIT",
+  "VEGA",
+  "WARP",
+  "XRAY",
+  "YUKI",
+  "ZERO",
 ];
 
 function seededRng(seed: number) {
