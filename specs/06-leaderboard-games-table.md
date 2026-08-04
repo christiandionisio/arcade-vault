@@ -114,8 +114,8 @@ VALUES (
 ## Criterios de aceptación
 
 - [x] Tabla `games` existe en Supabase con todos los campos del modelo (incluye `description_short` y `description_long`)
-- [ ] Tabla `scores` existe en Supabase con FK a `games.id`
-- [x] RLS habilitado en `games` según política definida (scores: pendiente Step 2)
+- [x] Tabla `scores` existe en Supabase con FK a `games.id`
+- [x] RLS habilitado en ambas tablas según política definida
 - [x] Fila de Asteroids existe en `games` con slug `"asteroids"`
 - [ ] Al llegar a Game Over en `/games/asteroids/play`, se emite evento custom `gameOver`
 - [ ] Prompt/modal de nombre aparece tras Game Over
