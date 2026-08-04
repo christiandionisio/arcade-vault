@@ -139,8 +139,8 @@ VALUES (
 - [x] `/games/asteroids` muestra sección leaderboard con top 10
 - [x] Leaderboard ordenado por `score DESC`, desempate `created_at ASC`
 - [x] `npm run build` pasa sin errores TypeScript (Steps 1–5)
-- [ ] `/games` muestra juegos leídos desde tabla `games` de Supabase
-- [ ] `/games` solo muestra Asteroids (único juego en DB actualmente)
+- [x] `/games` muestra juegos leídos desde tabla `games` de Supabase
+- [x] `/games` solo muestra Asteroids (único juego en DB actualmente)
 - [ ] `/hall` muestra scores reales desde tabla `scores` de Supabase
 - [ ] Tab "TODOS" en `/hall` muestra todos los scores; tab por juego filtra correctamente
 - [ ] `npm run build` pasa sin errores TypeScript (Steps 6–8)

@@ -1,60 +1,40 @@
-"use client";
+import { createClient } from "@/utils/supabase/server";
+import { type Game } from "@/app/data/games";
+import GamesGrid from "./_components/GamesGrid";
 
-import { useState } from "react";
-import Link from "next/link";
-import { GAMES, CATS } from "@/app/data/games";
+const COVER_MAP: Record<string, string> = {
+  asteroids: "cover-rocas",
+};
 
-function GameCard({ game }: { game: (typeof GAMES)[0] }) {
-  function onMove(e: React.MouseEvent<HTMLDivElement>) {
-    const el = e.currentTarget;
-    const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `translateY(-6px) rotateX(${-py * 6}deg) rotateY(${px * 8}deg)`;
-  }
-  function onLeave(e: React.MouseEvent<HTMLDivElement>) {
-    e.currentTarget.style.transform = "";
-  }
+const COLOR_MAP: Record<string, string> = {
+  asteroids: "#c7d0e0",
+};
 
-  const btnClass = `btn${game.color === "#ff006e" ? " magenta" : game.color === "#f5ff00" ? " yellow" : ""}`;
+export default async function LibraryPage() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("games")
+    .select(
+      "slug, name, description_short, description_long, category, best_score, matches_played",
+    )
+    .order("created_at", { ascending: true });
 
-  return (
-    <Link href={`/games/${game.id}`} style={{ textDecoration: "none" }}>
-      <div className="card" onMouseMove={onMove} onMouseLeave={onLeave}>
-        <div className="cover">
-          <div className={`cover-bg ${game.cover}`} />
-          <div className="label">{game.cat}</div>
-        </div>
-        <div className="meta">
-          <div className="title">{game.title}</div>
-          <div className="desc">{game.short}</div>
-          <div className="row">
-            <div className="score-badge">
-              <span>MEJOR PUNTUACIÓN</span>
-              <b>{game.best > 0 ? game.best.toLocaleString("es-ES") : "—"}</b>
-            </div>
-            <button
-              className={btnClass}
-              onClick={(e) => e.preventDefault()}
-            >
-              JUGAR
-            </button>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
+  const games: Game[] = (data ?? []).map((g) => ({
+    id: g.slug,
+    title: g.name,
+    short: g.description_short ?? "",
+    long: g.description_long ?? "",
+    cat: g.category?.toUpperCase() ?? "ARCADE",
+    cover: COVER_MAP[g.slug] ?? "cover-default",
+    color: COLOR_MAP[g.slug] ?? "#ffffff",
+    best: g.best_score ?? 0,
+    plays: (g.matches_played ?? 0).toLocaleString(),
+  }));
 
-export default function LibraryPage() {
-  const [query, setQuery] = useState("");
-  const [cat, setCat] = useState("TODOS");
-
-  const filtered = GAMES.filter((g) => {
-    const matchCat = cat === "TODOS" || g.cat === cat;
-    const matchQ = g.title.toLowerCase().includes(query.toLowerCase());
-    return matchCat && matchQ;
-  });
+  const cats = [
+    "TODOS",
+    ...Array.from(new Set(games.map((g) => g.cat))).sort(),
+  ];
 
   return (
     <main className="av-main fade-in">
@@ -65,40 +45,7 @@ export default function LibraryPage() {
         </div>
       </section>
 
-      <div className="av-filters">
-        <div className="av-search">
-          <span className="ico">⌕</span>
-          <input
-            type="text"
-            placeholder="Buscar un juego por nombre…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-        <div className="av-chips">
-          {CATS.map((c) => (
-            <button
-              key={c}
-              className={`chip${cat === c ? " active" : ""}`}
-              onClick={() => setCat(c)}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="av-grid">
-        {filtered.map((game) => (
-          <GameCard key={game.id} game={game} />
-        ))}
-        {filtered.length === 0 && (
-          <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 80, color: "var(--ink-faint)" }}>
-            <div className="pixel" style={{ fontSize: 14, color: "var(--magenta)", marginBottom: 12 }}>NO HAY RESULTADOS</div>
-            <div>Intenta otra búsqueda o categoría.</div>
-          </div>
-        )}
-      </div>
+      <GamesGrid games={games} cats={cats} />
     </main>
   );
 }
