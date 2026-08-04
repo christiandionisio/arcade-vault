@@ -4,6 +4,7 @@ import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/components/UserProvider";
+import { createClient } from "@/utils/supabase/client";
 
 const GAME_KEYS = new Set([
   "ArrowUp",
@@ -34,6 +35,8 @@ export default function AsteroidsPlayPage() {
   const [showModal, setShowModal] = useState(false);
   const [playerName, setPlayerName] = useState(user?.name ?? "");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const finalScore = useRef(0);
 
   useEffect(() => {
@@ -44,19 +47,27 @@ export default function AsteroidsPlayPage() {
     return () => window.removeEventListener("keydown", block);
   }, []);
 
+  // HUD polling
   useEffect(() => {
     const id = setInterval(() => {
       const gs = (window as Win).gameState;
       if (!gs) return;
-      setGameState((prev) => {
-        if (gs.gameOver && !prev.gameOver) {
-          finalScore.current = gs.score;
-          setShowModal(true);
-        }
-        return { ...gs };
-      });
+      setGameState({ ...gs });
     }, 100);
     return () => clearInterval(id);
+  }, []);
+
+  // Game over event from game.js
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const score = (e as CustomEvent<{ score: number }>).detail.score;
+      finalScore.current = score;
+      setSaved(false);
+      setSaveError(null);
+      setShowModal(true);
+    };
+    window.addEventListener("gameOver", handler);
+    return () => window.removeEventListener("gameOver", handler);
   }, []);
 
   function togglePause() {
@@ -66,19 +77,43 @@ export default function AsteroidsPlayPage() {
     });
   }
 
-  function handleSave() {
-    const entry = {
-      game: "asteroids",
-      name: playerName || "ANON",
+  async function handleSave() {
+    const name = playerName.trim() || "ANON";
+    setSaving(true);
+    setSaveError(null);
+
+    const supabase = createClient();
+
+    const { data: gameRow, error: gameErr } = await supabase
+      .from("games")
+      .select("id, best_score")
+      .eq("slug", "asteroids")
+      .single();
+
+    if (gameErr || !gameRow) {
+      setSaveError("Error al obtener el juego.");
+      setSaving(false);
+      return;
+    }
+
+    const { error: insertErr } = await supabase.from("scores").insert({
+      game_id: gameRow.id,
+      player_name: name.slice(0, 12),
       score: finalScore.current,
-      date: new Date().toISOString().slice(0, 10),
-    };
-    try {
-      const raw = localStorage.getItem("av_scores");
-      const arr = raw ? JSON.parse(raw) : [];
-      arr.unshift(entry);
-      localStorage.setItem("av_scores", JSON.stringify(arr.slice(0, 100)));
-    } catch {}
+    });
+
+    if (insertErr) {
+      setSaveError("Error al guardar puntuación.");
+      setSaving(false);
+      return;
+    }
+
+    await supabase.rpc("increment_game_stats", {
+      p_game_id: gameRow.id,
+      p_score: finalScore.current,
+    });
+
+    setSaving(false);
     setSaved(true);
   }
 
@@ -221,9 +256,24 @@ export default function AsteroidsPlayPage() {
                     }
                   />
                 </div>
+                {saveError && (
+                  <p
+                    style={{
+                      color: "var(--color-magenta)",
+                      fontSize: "11px",
+                      margin: "8px 0 0",
+                    }}
+                  >
+                    {saveError}
+                  </p>
+                )}
                 <div className="actions">
-                  <button className="btn yellow" onClick={handleSave}>
-                    GUARDAR PUNTUACIÓN
+                  <button
+                    className="btn yellow"
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? "GUARDANDO..." : "GUARDAR PUNTUACIÓN"}
                   </button>
                   <button
                     className="btn ghost"
@@ -239,9 +289,9 @@ export default function AsteroidsPlayPage() {
                 <div className="actions" style={{ marginTop: "24px" }}>
                   <button
                     className="btn ghost"
-                    onClick={() => router.push("/hall")}
+                    onClick={() => router.push("/games/asteroids")}
                   >
-                    VER SALÓN
+                    VER LEADERBOARD
                   </button>
                 </div>
               </>
