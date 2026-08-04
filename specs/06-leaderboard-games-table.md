@@ -118,10 +118,10 @@ VALUES (
 - [x] RLS habilitado en ambas tablas según política definida
 - [x] Fila de Asteroids existe en `games` con slug `"asteroids"`
 - [x] Al llegar a Game Over en `/games/asteroids/play`, se emite evento custom `gameOver`
-- [ ] Prompt/modal de nombre aparece tras Game Over
-- [ ] Score se inserta en `scores` con `player_name` y `game_id` correctos
-- [ ] `games.matches_played` se incrementa tras cada partida guardada
-- [ ] `games.best_score` se actualiza si el score nuevo supera el anterior
+- [x] Prompt/modal de nombre aparece tras Game Over
+- [x] Score se inserta en `scores` con `player_name` y `game_id` correctos
+- [x] `games.matches_played` se incrementa tras cada partida guardada
+- [x] `games.best_score` se actualiza si el score nuevo supera el anterior
 - [ ] `/games/asteroids` muestra sección leaderboard con top 10
 - [ ] Leaderboard ordenado por `score DESC`, desempate `created_at ASC`
 - [ ] `npm run build` pasa sin errores TypeScript
