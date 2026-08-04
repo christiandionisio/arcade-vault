@@ -299,6 +299,7 @@ let ship, bullets, asteroids, particles, powerUps;
 let score, lives, level;
 let state; // 'playing' | 'dead' | 'gameover'
 let deadTimer;
+let gameOverFired;
 let powerUpSpawned;
 let killsSinceSpawn;
 
@@ -326,6 +327,7 @@ function initGame() {
   lives = 3;
   level = 1;
   state = "playing";
+  gameOverFired = false;
   spawnAsteroids(4);
 }
 
@@ -350,6 +352,10 @@ function killShip() {
   lives--;
   if (lives <= 0) {
     state = "gameover";
+    if (!gameOverFired) {
+      gameOverFired = true;
+      window.dispatchEvent(new CustomEvent("gameOver", { detail: { score } }));
+    }
   } else {
     state = "dead";
     deadTimer = 2;

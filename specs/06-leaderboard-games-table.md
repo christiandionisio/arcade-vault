@@ -117,7 +117,7 @@ VALUES (
 - [x] Tabla `scores` existe en Supabase con FK a `games.id`
 - [x] RLS habilitado en ambas tablas según política definida
 - [x] Fila de Asteroids existe en `games` con slug `"asteroids"`
-- [ ] Al llegar a Game Over en `/games/asteroids/play`, se emite evento custom `gameOver`
+- [x] Al llegar a Game Over en `/games/asteroids/play`, se emite evento custom `gameOver`
 - [ ] Prompt/modal de nombre aparece tras Game Over
 - [ ] Score se inserta en `scores` con `player_name` y `game_id` correctos
 - [ ] `games.matches_played` se incrementa tras cada partida guardada
