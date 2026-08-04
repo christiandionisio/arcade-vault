@@ -19,11 +19,13 @@ dependencies: 04-supabase-setup, 05-asteroids-game
 - En `app/games/asteroids/play/page.tsx`: escuchar evento `gameOver`, pedir nombre al jugador, guardar score en Supabase
 - Actualizar `games.best_score` y `games.matches_played` tras cada partida guardada
 - Sección leaderboard en `/games/asteroids` (página de detalle del juego): top 10 scores con nombre y puntuación, estilo visual del resto de la plataforma
+- `/games` (biblioteca): leer lista de juegos desde tabla `games` de Supabase en lugar del array estático `GAMES` de `games.ts`
+- `/hall` (salón de la fama): leer scores reales desde tabla `scores` de Supabase en lugar de `seededScores`; tab "TODOS" agrupa todos los juegos, tab por juego filtra por `game_id`
 
 **Fuera:**
 
 - Autenticación — sin auth en este spec
-- Leaderboard global (todos los juegos juntos) — spec posterior
+- Leaderboard global paginado — spec posterior
 - Página `/leaderboard` dedicada — spec posterior
 - Otros juegos distintos de Asteroids
 - Validación de scores en servidor (anti-cheat)
@@ -105,10 +107,22 @@ VALUES (
    - Renderizar sección leaderboard con tabla: posición, nombre, puntuación
    - Estilo visual consistente con el resto de la plataforma
 
-6. **Verificación**
-   - `npm run dev`, jugar partida en `/games/asteroids/play`, llegar a Game Over
-   - Prompt de nombre aparece, score se guarda en Supabase
-   - Navegar a `/games/asteroids`, top 10 muestra la partida guardada
+6. **`app/games/page.tsx` (biblioteca)**
+   - Convertir a Server Component (eliminar `"use client"`)
+   - Leer lista de juegos desde tabla `games` de Supabase (server client)
+   - Mantener filtro por categoría y búsqueda — extraer a Client Component separado que recibe `games` como prop
+   - Mapear campos Supabase → shape que espera `GameCard`: `slug` → `id`, `name` → `title`, `description_short` → `short`, `description_long` → `long`, `category` → `cat`, `best_score` → `best`, `matches_played` → `plays`
+
+7. **`app/hall/page.tsx` (salón de la fama)**
+   - Convertir a Server Component
+   - Leer scores desde Supabase: `scores` JOIN `games` (slug, name), ordenado por `score DESC`, `created_at ASC`, sin límite (o top 50)
+   - Pasar datos al Client Component existente (tabs, podio, tabla) como props
+   - Tab "TODOS": todos los scores mezclados; tab por juego: filtrar por `game_id`
+   - Mantener lógica de podio y highlight de usuario actual
+
+8. **Verificación final**
+   - `npm run dev`, `/games` muestra solo el juego Asteroids (único en DB)
+   - `/hall` muestra scores reales de Supabase; tab "ROCAS" filtra por Asteroids
    - `npm run build` pasa sin errores TypeScript
 
 ## Criterios de aceptación
@@ -122,9 +136,14 @@ VALUES (
 - [x] Score se inserta en `scores` con `player_name` y `game_id` correctos
 - [x] `games.matches_played` se incrementa tras cada partida guardada
 - [x] `games.best_score` se actualiza si el score nuevo supera el anterior
-- [ ] `/games/asteroids` muestra sección leaderboard con top 10
-- [ ] Leaderboard ordenado por `score DESC`, desempate `created_at ASC`
-- [ ] `npm run build` pasa sin errores TypeScript
+- [x] `/games/asteroids` muestra sección leaderboard con top 10
+- [x] Leaderboard ordenado por `score DESC`, desempate `created_at ASC`
+- [x] `npm run build` pasa sin errores TypeScript (Steps 1–5)
+- [ ] `/games` muestra juegos leídos desde tabla `games` de Supabase
+- [ ] `/games` solo muestra Asteroids (único juego en DB actualmente)
+- [ ] `/hall` muestra scores reales desde tabla `scores` de Supabase
+- [ ] Tab "TODOS" en `/hall` muestra todos los scores; tab por juego filtra correctamente
+- [ ] `npm run build` pasa sin errores TypeScript (Steps 6–8)
 
 ## Decisiones tomadas y descartadas
 
