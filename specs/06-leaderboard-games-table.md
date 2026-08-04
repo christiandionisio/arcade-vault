@@ -1,7 +1,7 @@
 ---
 spec: 06-leaderboard-games-table
 title: Leaderboard y tabla de juegos en Supabase
-state: Approved
+state: Implemented
 date: 2026-08-03
 objective: Crear tablas `games` y `scores` en Supabase, guardar score al terminar partida en Asteroids vía evento custom, y mostrar top 10 en la página del juego.
 dependencies: 04-supabase-setup, 05-asteroids-game
@@ -141,9 +141,9 @@ VALUES (
 - [x] `npm run build` pasa sin errores TypeScript (Steps 1–5)
 - [x] `/games` muestra juegos leídos desde tabla `games` de Supabase
 - [x] `/games` solo muestra Asteroids (único juego en DB actualmente)
-- [ ] `/hall` muestra scores reales desde tabla `scores` de Supabase
-- [ ] Tab "TODOS" en `/hall` muestra todos los scores; tab por juego filtra correctamente
-- [ ] `npm run build` pasa sin errores TypeScript (Steps 6–8)
+- [x] `/hall` muestra scores reales desde tabla `scores` de Supabase
+- [x] Tab "TODOS" en `/hall` muestra todos los scores; tab por juego filtra correctamente
+- [x] `npm run build` pasa sin errores TypeScript (Steps 6–8)
 
 ## Decisiones tomadas y descartadas
 
