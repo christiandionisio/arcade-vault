@@ -13,7 +13,18 @@ Esta skill genera un spec concreto y ejecutable para integrar un juego canvas/JS
 
 Arcade Vault usa un contrato fijo para conectar React con cualquier juego canvas/JS vanilla vía `window`. Tú ya lo conoces — lo que varía son los detalles del juego específico (nombres de variables, dimensiones, archivos extra).
 
-**Tres parches en `game.js`:**
+**Tres parches en `game.js`** + **un requisito estructural:**
+
+0. **IIFE wrapper** — todo el contenido de `game.js` debe estar envuelto en una IIFE. Esto evita que las declaraciones `const`/`let` del nivel superior queden en el scope global, lo que causaría `SyntaxError: Identifier 'X' has already been declared` al rejugar sin refresh de página (Next.js no re-ejecuta scripts cacheados; el useEffect los reinyecta, pero el scope global persiste entre montajes).
+
+   ```js
+   // Inicio del archivo (reemplaza "use strict"; suelto):
+   (function () {
+     "use strict";
+
+     // ... todo el código del juego ...
+   })(); // cierre al final del archivo
+   ```
 
 1. **Pausa** — al inicio de la función de loop principal:
    ```js
@@ -212,14 +223,26 @@ Siempre 7 pasos en este orden (adaptar detalles de `<slug>`, variables, archivos
    - Fuente: `<ruta-fuente>/game.js` (y assets si aplica)
    - Si hay archivos extra (`levels.js`, `assets/`): copiarlos manteniendo la estructura de carpetas
 
-2. **Parchar `public/games/<slug>/game.js`** (3 ediciones quirúrgicas):
+2. **Parchar `public/games/<slug>/game.js`** (4 ediciones):
+   - Envolver **todo** el archivo en IIFE: `(function () { "use strict"; ... })();` — elimina `"use strict";` suelto del inicio y cierra la IIFE al final. Crítico para rejugar sin refresh.
    - Al inicio de la función `<nombreLoop>`: añadir check de pausa (`window.gamePaused`)
    - Al final de cada tick del loop: escribir `window.gameState = { score: <varScore>, lives: <varLives>, level: <varLevel>, gameOver: <condición> }`
    - En la condición de game over: declarar `gameOverFired = false` al inicio, resetear en `<funcionInit>`, disparar evento `gameOver` una sola vez con `{ detail: { score: <varScore> } }`
 
 3. **Crear `app/games/<slug>/play/page.tsx`** — copiar `app/games/asteroids/play/page.tsx`, cambiar:
    - Literal `"asteroids"` → `"<slug>"`
-   - `<Script src="/games/asteroids/game.js">` → `<Script src="/games/<slug>/game.js">` (añadir `<Script>` adicionales si hay archivos extra, en orden de carga)
+   - La play page usa `useEffect` con script nativo (NO `<Script>` de next/script) para forzar re-ejecución en cada montaje:
+     ```ts
+     useEffect(() => {
+       const script = document.createElement("script");
+       script.src = "/games/<slug>/game.js";
+       document.body.appendChild(script);
+       return () => {
+         document.body.removeChild(script);
+       };
+     }, []);
+     ```
+   - Si hay archivos extra, agregar un `useEffect` por archivo en orden de carga
    - Dimensiones del canvas si difieren de 800×600
 
 4. **Crear `app/games/<slug>/page.tsx`** — copiar `app/games/asteroids/page.tsx`, cambiar:
@@ -271,6 +294,7 @@ Lista booleana, verificable, sin aspiraciones. Incluye siempre estos (adaptar sl
 - [ ] `npm run build` pasa sin errores TypeScript
 - [ ] HUD de plataforma visible en play: JUGADOR, PUNTUACIÓN, VIDAS, NIVEL, botones PAUSA y FIN
 - [ ] Canvas dentro del área `crt-screen`, controles del juego funcionan
+- [ ] Rejugar sin refresh: navegar a `/games/<slug>/play`, salir (FIN), volver a entrar → canvas activo, sin pantalla negra, sin `SyntaxError` en consola
 ````
 
 Añadir criterios adicionales si el juego tiene características particulares (sonidos, levels.js, etc.). Presenta, pide confirmación.
@@ -280,12 +304,14 @@ Añadir criterios adicionales si el juego tiene características particulares (s
 Tabla con las decisiones clave del spec. Incluye siempre las que son comunes al patrón:
 
 ```markdown
-| Decisión                        | Elegida                     | Descartada                     | Razón                                            |
-| ------------------------------- | --------------------------- | ------------------------------ | ------------------------------------------------ |
-| Auth para scores                | Sin auth, nombre libre      | Requerir sesión activa         | Auth no implementada; no bloquea leaderboard     |
-| Trigger game over               | Evento custom `gameOver`    | Polling de `window.gameState`  | Más limpio; evita polling en el componente React |
-| `best_score` / `matches_played` | Desnormalizado + RPC        | Derivado con COUNT/MAX         | Queries simples; actualización atómica via RPC   |
-| Scope del leaderboard           | Sección en página del juego | Página `/leaderboard` dedicada | Consistente con patrón Asteroids                 |
+| Decisión                        | Elegida                       | Descartada                     | Razón                                                                                                        |
+| ------------------------------- | ----------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Auth para scores                | Sin auth, nombre libre        | Requerir sesión activa         | Auth no implementada; no bloquea leaderboard                                                                 |
+| Trigger game over               | Evento custom `gameOver`      | Polling de `window.gameState`  | Más limpio; evita polling en el componente React                                                             |
+| `best_score` / `matches_played` | Desnormalizado + RPC          | Derivado con COUNT/MAX         | Queries simples; actualización atómica via RPC                                                               |
+| Scope del leaderboard           | Sección en página del juego   | Página `/leaderboard` dedicada | Consistente con patrón Asteroids                                                                             |
+| Carga de game.js                | `useEffect` + script nativo   | `<Script>` de next/script      | Next.js deduplica `<Script>` entre navegaciones; script nativo fuerza re-ejecución en cada montaje           |
+| Scope de variables en game.js   | IIFE envuelve todo el archivo | Variables en scope global      | Sin IIFE, `const X` en scope global lanza `SyntaxError` al rejugar (el scope global persiste entre montajes) |
 ```
 
 Añadir decisiones específicas del juego que surgieron en Fase 2. Presenta, pide confirmación.
