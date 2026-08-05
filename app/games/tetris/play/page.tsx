@@ -15,18 +15,18 @@ const GAME_KEYS = new Set([
 
 type GameState = {
   score: number;
-  lives: number;
+  lives: string | number;
   level: number;
   gameOver: boolean;
 };
 type Win = Window & { gamePaused?: boolean; gameState?: GameState };
 
-export default function AsteroidsPlayPage() {
+export default function TetrisPlayPage() {
   const { user } = useUser();
   const router = useRouter();
   const [gameState, setGameState] = useState<GameState>({
     score: 0,
-    lives: 3,
+    lives: "-",
     level: 1,
     gameOver: false,
   });
@@ -49,7 +49,7 @@ export default function AsteroidsPlayPage() {
   // Re-run game.js on every mount (Next.js Script deduplicates across navigations)
   useEffect(() => {
     const script = document.createElement("script");
-    script.src = "/games/asteroids/game.js";
+    script.src = "/games/tetris/game.js";
     document.body.appendChild(script);
     return () => {
       document.body.removeChild(script);
@@ -96,7 +96,7 @@ export default function AsteroidsPlayPage() {
     const { data: gameRow, error: gameErr } = await supabase
       .from("games")
       .select("id, best_score")
-      .eq("slug", "asteroids")
+      .eq("slug", "tetris")
       .single();
 
     if (gameErr || !gameRow) {
@@ -161,9 +161,7 @@ export default function AsteroidsPlayPage() {
           </div>
           <div className="hud-stat lives">
             <span className="l">VIDAS</span>
-            <span className="v">
-              {"♥".repeat(Math.max(0, gameState.lives))}
-            </span>
+            <span className="v">{gameState.lives}</span>
           </div>
           <div className="hud-stat level">
             <span className="l">NIVEL</span>
@@ -182,7 +180,7 @@ export default function AsteroidsPlayPage() {
             <button
               className="btn magenta"
               style={{ padding: "8px 14px", fontSize: "9px" }}
-              onClick={() => router.push("/games/asteroids")}
+              onClick={() => router.push("/games/tetris")}
             >
               FIN
             </button>
@@ -202,25 +200,58 @@ export default function AsteroidsPlayPage() {
           <div
             className="crt-screen"
             style={{
-              width: "min(100%, calc((100dvh - 220px) * 4 / 3))",
+              height: "min(100%, calc((100dvh - 220px)))",
+              width: "auto",
+              aspectRatio: "auto",
               position: "relative",
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "flex-start",
+              gap: "12px",
+              padding: "12px",
             }}
           >
             <canvas
               id="canvas"
-              width={800}
+              width={300}
               height={600}
               style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
                 height: "100%",
+                width: "auto",
+                display: "block",
               }}
             />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "9px",
+                  letterSpacing: "0.15em",
+                  color: "var(--color-cyan)",
+                  fontFamily: "var(--font-pixel, monospace)",
+                }}
+              >
+                SIGUIENTE
+              </span>
+              <canvas
+                id="next-canvas"
+                width={120}
+                height={120}
+                style={{ display: "block" }}
+              />
+            </div>
             {paused && (
               <div
                 className="crt-content"
                 style={{
+                  position: "absolute",
+                  inset: 0,
                   flexDirection: "column",
                   gap: "20px",
                   zIndex: 10,
@@ -240,8 +271,8 @@ export default function AsteroidsPlayPage() {
             )}
           </div>
           <div className="crt-bottom" style={{ width: "100%" }}>
-            <span className="led">ROCAS</span>
-            <span>FLECHAS + ESPACIO</span>
+            <span className="led">TETRIS</span>
+            <span>FLECHAS · X ROTAR · ESPACIO CAÍDA</span>
           </div>
         </div>
       </div>
@@ -286,7 +317,7 @@ export default function AsteroidsPlayPage() {
                   </button>
                   <button
                     className="btn ghost"
-                    onClick={() => router.push("/games/asteroids")}
+                    onClick={() => router.push("/games/tetris")}
                   >
                     SALIR
                   </button>
@@ -298,7 +329,7 @@ export default function AsteroidsPlayPage() {
                 <div className="actions" style={{ marginTop: "24px" }}>
                   <button
                     className="btn ghost"
-                    onClick={() => router.push("/games/asteroids")}
+                    onClick={() => router.push("/games/tetris")}
                   >
                     VER LEADERBOARD
                   </button>
