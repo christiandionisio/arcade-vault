@@ -846,6 +846,32 @@ a {
   letter-spacing: 4px;
 }
 
+.cover-arkanoid {
+  background: linear-gradient(180deg, #1a0000, #0d0000);
+}
+.cover-arkanoid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #e84545 0 60px, transparent 60px) 0 20px / 64px 24px,
+    linear-gradient(90deg, #f5a623 0 60px, transparent 60px) 68px 48px / 64px
+      24px,
+    linear-gradient(90deg, #e84545 0 60px, transparent 60px) 136px 20px / 64px
+      24px;
+  opacity: 0.2;
+}
+.cover-arkanoid::before {
+  content: "▬";
+  position: absolute;
+  left: 50%;
+  top: 72%;
+  transform: translateX(-50%);
+  color: #e84545;
+  font-size: 24px;
+  text-shadow: 0 0 10px #e84545;
+}
+
 .cover-rana {
   background: linear-gradient(180deg, #001f2a, #0a0a18);
 }
