@@ -203,9 +203,9 @@ function spawn() {
 }
 
 function updateHUD() {
-  scoreEl.textContent = score.toLocaleString();
-  linesEl.textContent = lines;
-  levelEl.textContent = level;
+  if (scoreEl) scoreEl.textContent = score.toLocaleString();
+  if (linesEl) linesEl.textContent = lines;
+  if (levelEl) levelEl.textContent = level;
 }
 
 function drawBlock(context, x, y, colorIndex, size, alpha) {
@@ -278,9 +278,10 @@ function endGame() {
     window.dispatchEvent(new CustomEvent("gameOver", { detail: { score } }));
   }
   cancelAnimationFrame(animId);
-  overlayTitle.textContent = "GAME OVER";
-  overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
-  overlay.classList.remove("hidden");
+  if (overlayTitle) overlayTitle.textContent = "GAME OVER";
+  if (overlayScore)
+    overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
+  if (overlay) overlay.classList.remove("hidden");
 }
 
 function togglePause() {
@@ -291,9 +292,9 @@ function togglePause() {
     loop(lastTime);
   } else {
     cancelAnimationFrame(animId);
-    overlayTitle.textContent = "PAUSA";
-    overlayScore.textContent = "";
-    overlay.classList.remove("hidden");
+    if (overlayTitle) overlayTitle.textContent = "PAUSA";
+    if (overlayScore) overlayScore.textContent = "";
+    if (overlay) overlay.classList.remove("hidden");
   }
 }
 
@@ -333,7 +334,7 @@ function init() {
   next = randomPiece();
   spawn();
   updateHUD();
-  overlay.classList.add("hidden");
+  if (overlay) overlay.classList.add("hidden");
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
@@ -366,31 +367,33 @@ document.addEventListener("keydown", (e) => {
   updateHUD();
 });
 
-restartBtn.addEventListener("click", init);
+if (restartBtn) restartBtn.addEventListener("click", init);
 
 const themeToggle = document.getElementById("theme-toggle");
-const toggleIcon = themeToggle.querySelector(".toggle-icon");
-const toggleLabel = themeToggle.querySelector(".toggle-label");
+if (themeToggle) {
+  const toggleIcon = themeToggle.querySelector(".toggle-icon");
+  const toggleLabel = themeToggle.querySelector(".toggle-label");
 
-function applyTheme(isLight) {
-  if (isLight) {
-    document.body.classList.add("light-mode");
-    toggleIcon.textContent = "☀";
-    toggleLabel.textContent = "DARK";
-  } else {
-    document.body.classList.remove("light-mode");
-    toggleIcon.textContent = "☾";
-    toggleLabel.textContent = "LIGHT";
+  function applyTheme(isLight) {
+    if (isLight) {
+      document.body.classList.add("light-mode");
+      toggleIcon.textContent = "☀";
+      toggleLabel.textContent = "DARK";
+    } else {
+      document.body.classList.remove("light-mode");
+      toggleIcon.textContent = "☾";
+      toggleLabel.textContent = "LIGHT";
+    }
   }
+
+  const savedTheme = localStorage.getItem("tetris-theme");
+  applyTheme(savedTheme === "light");
+
+  themeToggle.addEventListener("click", () => {
+    const isLight = !document.body.classList.contains("light-mode");
+    applyTheme(isLight);
+    localStorage.setItem("tetris-theme", isLight ? "light" : "dark");
+  });
 }
-
-const savedTheme = localStorage.getItem("tetris-theme");
-applyTheme(savedTheme === "light");
-
-themeToggle.addEventListener("click", () => {
-  const isLight = !document.body.classList.contains("light-mode");
-  applyTheme(isLight);
-  localStorage.setItem("tetris-theme", isLight ? "light" : "dark");
-});
 
 init();
