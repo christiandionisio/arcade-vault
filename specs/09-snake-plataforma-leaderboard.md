@@ -1,6 +1,6 @@
 # SPEC 09 — Integración de Snake: plataforma + leaderboard
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** 04-supabase-setup, 06-leaderboard-games-table
 > **Fecha:** 2026-08-05
 > **Objetivo:** Integrar el juego Snake (canvas/JS vanilla) en Arcade Vault con HUD, guardado de scores en Supabase y leaderboard en la página del juego.
