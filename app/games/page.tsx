@@ -5,11 +5,13 @@ import GamesGrid from "./_components/GamesGrid";
 const COVER_MAP: Record<string, string> = {
   asteroids: "cover-rocas",
   tetris: "cover-tetris",
+  arkanoid: "cover-arkanoid",
 };
 
 const COLOR_MAP: Record<string, string> = {
   asteroids: "#c7d0e0",
   tetris: "#4dd0e1",
+  arkanoid: "#e84545",
 };
 
 export default async function LibraryPage() {
