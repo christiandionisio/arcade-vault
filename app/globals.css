@@ -872,6 +872,29 @@ a {
   text-shadow: 0 0 10px #e84545;
 }
 
+.cover-snake {
+  background: linear-gradient(180deg, #0a1a0a, #071007);
+}
+.cover-snake::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #2d5a2d 0 8px, transparent 8px) 0 0 / 12px 12px,
+    linear-gradient(90deg, #3a7a3a 0 8px, transparent 8px) 12px 12px / 12px 12px;
+  opacity: 0.25;
+}
+.cover-snake::before {
+  content: "▶";
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  transform: translateX(-50%) rotate(90deg);
+  color: #55ee55;
+  font-size: 28px;
+  text-shadow: 0 0 12px #55ee55;
+}
+
 .cover-rana {
   background: linear-gradient(180deg, #001f2a, #0a0a18);
 }
