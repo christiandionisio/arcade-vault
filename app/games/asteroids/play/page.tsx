@@ -1,6 +1,5 @@
 "use client";
 
-import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/components/UserProvider";
@@ -45,6 +44,16 @@ export default function AsteroidsPlayPage() {
     };
     window.addEventListener("keydown", block);
     return () => window.removeEventListener("keydown", block);
+  }, []);
+
+  // Re-run game.js on every mount (Next.js Script deduplicates across navigations)
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "/games/asteroids/game.js";
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
 
   // HUD polling
@@ -299,8 +308,6 @@ export default function AsteroidsPlayPage() {
           </div>
         </div>
       )}
-
-      <Script src="/games/asteroids/game.js" strategy="afterInteractive" />
     </main>
   );
 }

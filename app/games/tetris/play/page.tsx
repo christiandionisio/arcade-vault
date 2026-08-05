@@ -1,6 +1,5 @@
 "use client";
 
-import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/components/UserProvider";
@@ -45,6 +44,16 @@ export default function TetrisPlayPage() {
     };
     window.addEventListener("keydown", block);
     return () => window.removeEventListener("keydown", block);
+  }, []);
+
+  // Re-run game.js on every mount (Next.js Script deduplicates across navigations)
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "/games/tetris/game.js";
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
 
   // HUD polling
@@ -330,8 +339,6 @@ export default function TetrisPlayPage() {
           </div>
         </div>
       )}
-
-      <Script src="/games/tetris/game.js" strategy="afterInteractive" />
     </main>
   );
 }
