@@ -6,7 +6,6 @@
 
 | ID               | Título         | Categoría  | Color     | Descripción breve                                   | Justificación                                                  | Fecha      |
 | ---------------- | -------------- | ---------- | --------- | --------------------------------------------------- | -------------------------------------------------------------- | ---------- |
-| `frogger`        | FROGGER        | MAZE       | `#4caf50` | Cruza la carretera y el río sin morir               | Género maze/crossing ausente; score-driven; canvas+JS puro     | 2026-08-09 |
 | `space-invaders` | SPACE INVADERS | SHOOTER    | `#00e5ff` | Defiende la Tierra de oleadas de alienígenas        | Shooter clásico icónico; oleadas, score multiplicador, ritmo   | 2026-08-09 |
 | `galaga`         | GALAGA         | SHOOTER    | `#ff6f00` | Naves enemigas en formación atacan en picada        | Buceo enemigo único; bonus stage dobla score                   | 2026-08-09 |
 | `centipede`      | CENTIPEDE      | SHOOTER    | `#76ff03` | Destruye el ciempiés que serpentea entre hongos     | Shooter vertical; campo destructible, score por segmento       | 2026-08-09 |
@@ -30,8 +29,9 @@
 
 ## 🟢 Aceptados / en desarrollo
 
-| ID  | Título | Spec | Fecha aceptado |
-| --- | ------ | ---- | -------------- |
+| ID        | Título  | Spec                      | Fecha aceptado |
+| --------- | ------- | ------------------------- | -------------- |
+| `frogger` | FROGGER | `specs/game-jam/frogger/` | 2026-08-09     |
 
 ## ✅ Implementados
 
