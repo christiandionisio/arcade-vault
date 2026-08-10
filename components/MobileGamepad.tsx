@@ -11,8 +11,6 @@ interface MobileGamepadProps {
     actionA?: string;
     actionB?: string;
   };
-  labelA?: string;
-  labelB?: string;
   onPause: () => void;
   paused: boolean;
   skins: string[];
@@ -20,28 +18,43 @@ interface MobileGamepadProps {
   onSkinChange: (skin: string) => void;
 }
 
+const CODE_TO_KEY: Record<string, string> = {
+  ArrowUp: "ArrowUp",
+  ArrowDown: "ArrowDown",
+  ArrowLeft: "ArrowLeft",
+  ArrowRight: "ArrowRight",
+  Space: " ",
+  KeyX: "x",
+};
+
 function fireKey(code: string, type: "keydown" | "keyup") {
-  window.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
+  const key = CODE_TO_KEY[code] ?? code;
+  document.dispatchEvent(new KeyboardEvent(type, { code, key, bubbles: true }));
 }
 
 function GamepadButton({
   code,
   label,
   className,
+  disabled = false,
 }: {
-  code: string;
+  code?: string;
   label: string;
   className?: string;
+  disabled?: boolean;
 }) {
   return (
     <button
-      className={`mgp-btn ${className ?? ""}`}
+      className={`mgp-btn ${className ?? ""}${disabled ? " mgp-btn-disabled" : ""}`}
       style={{ touchAction: "none" }}
+      disabled={disabled}
       onTouchStart={(e) => {
+        if (disabled || !code) return;
         e.preventDefault();
         fireKey(code, "keydown");
       }}
       onTouchEnd={(e) => {
+        if (disabled || !code) return;
         e.preventDefault();
         fireKey(code, "keyup");
       }}
@@ -53,8 +66,6 @@ function GamepadButton({
 
 export default function MobileGamepad({
   keyMap,
-  labelA = "A",
-  labelB = "B",
   onPause,
   paused,
   skins,
@@ -72,59 +83,53 @@ export default function MobileGamepad({
   return (
     <div className="mgp-root">
       <div className="mgp-controls">
-        {/* D-pad */}
+        {/* D-pad: always 9 cells */}
         <div className="mgp-dpad">
           <div />
-          {keyMap.up && (
-            <GamepadButton
-              code={keyMap.up}
-              label="▲"
-              className="mgp-dpad-btn"
-            />
-          )}
+          <GamepadButton
+            code={keyMap.up}
+            label="▲"
+            className="mgp-dpad-btn"
+            disabled={!keyMap.up}
+          />
           <div />
-          {keyMap.left && (
-            <GamepadButton
-              code={keyMap.left}
-              label="◀"
-              className="mgp-dpad-btn"
-            />
-          )}
+          <GamepadButton
+            code={keyMap.left}
+            label="◀"
+            className="mgp-dpad-btn"
+            disabled={!keyMap.left}
+          />
           <div className="mgp-dpad-center" />
-          {keyMap.right && (
-            <GamepadButton
-              code={keyMap.right}
-              label="▶"
-              className="mgp-dpad-btn"
-            />
-          )}
+          <GamepadButton
+            code={keyMap.right}
+            label="▶"
+            className="mgp-dpad-btn"
+            disabled={!keyMap.right}
+          />
           <div />
-          {keyMap.down && (
-            <GamepadButton
-              code={keyMap.down}
-              label="▼"
-              className="mgp-dpad-btn"
-            />
-          )}
+          <GamepadButton
+            code={keyMap.down}
+            label="▼"
+            className="mgp-dpad-btn"
+            disabled={!keyMap.down}
+          />
           <div />
         </div>
 
-        {/* Action buttons */}
+        {/* Action buttons: always A and B */}
         <div className="mgp-actions">
-          {keyMap.actionB && (
-            <GamepadButton
-              code={keyMap.actionB}
-              label={labelB}
-              className="mgp-action-btn mgp-btn-b"
-            />
-          )}
-          {keyMap.actionA && (
-            <GamepadButton
-              code={keyMap.actionA}
-              label={labelA}
-              className="mgp-action-btn mgp-btn-a"
-            />
-          )}
+          <GamepadButton
+            code={keyMap.actionB}
+            label="B"
+            className="mgp-action-btn mgp-btn-b"
+            disabled={!keyMap.actionB}
+          />
+          <GamepadButton
+            code={keyMap.actionA}
+            label="A"
+            className="mgp-action-btn mgp-btn-a"
+            disabled={!keyMap.actionA}
+          />
         </div>
       </div>
 

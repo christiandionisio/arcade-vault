@@ -323,8 +323,7 @@ export default function AsteroidsPlayPage() {
             actionA: "Space",
             actionB: "ArrowUp",
           }}
-          labelA="FIRE"
-          labelB="THRUST"
+
           onPause={togglePause}
           paused={paused}
           skins={skins}

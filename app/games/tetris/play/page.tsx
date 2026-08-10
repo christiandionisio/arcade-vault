@@ -363,7 +363,7 @@ export default function TetrisPlayPage() {
             down: "ArrowDown",
             actionA: "KeyX",
           }}
-          labelA="ROTAR"
+
           onPause={togglePause}
           paused={paused}
           skins={skins}
