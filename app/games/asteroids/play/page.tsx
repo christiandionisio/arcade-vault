@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/components/UserProvider";
 import { createClient } from "@/utils/supabase/client";
+import MobileGamepad from "@/components/MobileGamepad";
 
 const GAME_KEYS = new Set([
   "ArrowUp",
@@ -44,6 +45,11 @@ export default function AsteroidsPlayPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const finalScore = useRef(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
 
   useEffect(() => {
     const block = (e: KeyboardEvent) => {
@@ -155,26 +161,40 @@ export default function AsteroidsPlayPage() {
   return (
     <main
       className="av-main fade-in"
-      style={{
-        height: "calc(100dvh - 65px)",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-      }}
+      style={
+        isMobile
+          ? { display: "flex", flexDirection: "column" }
+          : {
+              height: "calc(100dvh - 65px)",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }
+      }
     >
       <div
         className="av-player"
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minHeight: 0,
-          width: "100%",
-          margin: "16px auto",
-          paddingBottom: 0,
-        }}
+        style={
+          isMobile
+            ? {
+                display: "flex",
+                flexDirection: "column",
+                width: "100%",
+                padding: "0 8px 16px",
+                margin: "8px auto",
+              }
+            : {
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                minHeight: 0,
+                width: "100%",
+                margin: "16px auto",
+                paddingBottom: 0,
+              }
+        }
       >
-        <div className="player-hud">
+        <div className="player-hud" style={isMobile ? { display: "none" } : {}}>
           <div className="hud-stat">
             <span className="l">JUGADOR</span>
             <span className="v" style={{ fontSize: "12px" }}>
@@ -230,20 +250,32 @@ export default function AsteroidsPlayPage() {
 
         <div
           className="crt"
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            minHeight: 0,
-            alignItems: "center",
-          }}
+          style={
+            isMobile
+              ? {
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }
+              : {
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: 0,
+                  alignItems: "center",
+                }
+          }
         >
           <div
             className="crt-screen"
-            style={{
-              width: "min(100%, calc((100dvh - 220px) * 4 / 3))",
-              position: "relative",
-            }}
+            style={
+              isMobile
+                ? { width: "100%", position: "relative" }
+                : {
+                    width: "min(100%, calc((100dvh - 220px) * 4 / 3))",
+                    position: "relative",
+                  }
+            }
           >
             <canvas
               id="canvas"
@@ -283,6 +315,21 @@ export default function AsteroidsPlayPage() {
             <span>FLECHAS + ESPACIO</span>
           </div>
         </div>
+
+        <MobileGamepad
+          keyMap={{
+            left: "ArrowLeft",
+            right: "ArrowRight",
+            actionA: "Space",
+            actionB: "ArrowUp",
+          }}
+
+          onPause={togglePause}
+          paused={paused}
+          skins={skins}
+          activeSkin={activeSkin}
+          onSkinChange={handleSkinChange}
+        />
       </div>
 
       {showModal && (
