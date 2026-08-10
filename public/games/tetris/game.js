@@ -5,6 +5,87 @@
   const ROWS = 20;
   const BLOCK = 30;
 
+  const SKINS = {
+    classic: {
+      bg: "#000000",
+      pieces: [
+        null,
+        "#4dd0e1",
+        "#ffd54f",
+        "#ba68c8",
+        "#81c784",
+        "#e57373",
+        "#90caf9",
+        "#ffb74d",
+        "#9e9e9e",
+      ],
+      ghost: "rgba(255,255,255,0.18)",
+      grid: "rgba(255,255,255,0.05)",
+      highlight: "rgba(255,255,255,0.12)",
+    },
+    retro: {
+      bg: "#1a0a00",
+      pieces: [
+        null,
+        "#ff6600",
+        "#ffaa00",
+        "#cc4400",
+        "#ff8800",
+        "#dd2200",
+        "#ff5500",
+        "#ffcc00",
+        "#aa6600",
+      ],
+      ghost: "rgba(255,120,0,0.2)",
+      grid: "rgba(255,100,0,0.1)",
+      highlight: "rgba(255,200,0,0.15)",
+    },
+    neon: {
+      bg: "#050510",
+      pieces: [
+        null,
+        "#00ffff",
+        "#ffff00",
+        "#ff00ff",
+        "#00ff88",
+        "#ff0055",
+        "#0088ff",
+        "#ff8800",
+        "#aaaaff",
+      ],
+      ghost: "rgba(0,255,255,0.15)",
+      grid: "rgba(0,255,255,0.06)",
+      highlight: "rgba(255,255,255,0.18)",
+    },
+    pastel: {
+      bg: "#1a1a2e",
+      pieces: [
+        null,
+        "#a8d8ea",
+        "#ffeaa7",
+        "#dda0dd",
+        "#98d8c8",
+        "#ffb3b3",
+        "#b3c6ff",
+        "#ffd4a3",
+        "#d4d4d4",
+      ],
+      ghost: "rgba(200,200,255,0.2)",
+      grid: "rgba(180,180,220,0.08)",
+      highlight: "rgba(255,255,255,0.2)",
+    },
+  };
+  let activeSkin = SKINS.classic;
+
+  window.gameSkins = Object.keys(SKINS);
+  window.setSkin = (name) => {
+    activeSkin = SKINS[name] ?? activeSkin;
+    localStorage.setItem("tetris-skin", name);
+  };
+
+  const _savedSkin = localStorage.getItem("tetris-skin");
+  if (_savedSkin && SKINS[_savedSkin]) activeSkin = SKINS[_savedSkin];
+
   const COLORS = [
     null,
     "#4dd0e1", // I - cyan
@@ -211,20 +292,18 @@
 
   function drawBlock(context, x, y, colorIndex, size, alpha) {
     if (!colorIndex) return;
-    const color = COLORS[colorIndex];
+    const color = activeSkin.pieces[colorIndex];
     context.globalAlpha = alpha ?? 1;
     context.fillStyle = color;
     context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
     // highlight
-    context.fillStyle = "rgba(255,255,255,0.12)";
+    context.fillStyle = activeSkin.highlight;
     context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
     context.globalAlpha = 1;
   }
 
   function drawGrid() {
-    ctx.strokeStyle = getComputedStyle(document.body)
-      .getPropertyValue("--grid-line")
-      .trim();
+    ctx.strokeStyle = activeSkin.grid;
     ctx.lineWidth = 0.5;
     for (let c = 1; c < COLS; c++) {
       ctx.beginPath();
@@ -241,7 +320,8 @@
   }
 
   function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = activeSkin.bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawGrid();
 
     // board
@@ -252,15 +332,17 @@
     const gy = ghostY();
     for (let r = 0; r < current.shape.length; r++)
       for (let c = 0; c < current.shape[r].length; c++)
-        if (current.shape[r][c])
-          drawBlock(
-            ctx,
-            current.x + c,
-            gy + r,
-            current.shape[r][c],
-            BLOCK,
-            0.2,
+        if (current.shape[r][c]) {
+          ctx.globalAlpha = 0.25;
+          ctx.fillStyle = activeSkin.ghost;
+          ctx.fillRect(
+            (current.x + c) * BLOCK + 1,
+            (gy + r) * BLOCK + 1,
+            BLOCK - 2,
+            BLOCK - 2,
           );
+          ctx.globalAlpha = 1;
+        }
 
     // current piece
     for (let r = 0; r < current.shape.length; r++)
@@ -382,33 +464,6 @@
   });
 
   if (restartBtn) restartBtn.addEventListener("click", init);
-
-  const themeToggle = document.getElementById("theme-toggle");
-  if (themeToggle) {
-    const toggleIcon = themeToggle.querySelector(".toggle-icon");
-    const toggleLabel = themeToggle.querySelector(".toggle-label");
-
-    function applyTheme(isLight) {
-      if (isLight) {
-        document.body.classList.add("light-mode");
-        toggleIcon.textContent = "☀";
-        toggleLabel.textContent = "DARK";
-      } else {
-        document.body.classList.remove("light-mode");
-        toggleIcon.textContent = "☾";
-        toggleLabel.textContent = "LIGHT";
-      }
-    }
-
-    const savedTheme = localStorage.getItem("tetris-theme");
-    applyTheme(savedTheme === "light");
-
-    themeToggle.addEventListener("click", () => {
-      const isLight = !document.body.classList.contains("light-mode");
-      applyTheme(isLight);
-      localStorage.setItem("tetris-theme", isLight ? "light" : "dark");
-    });
-  }
 
   init();
 })();

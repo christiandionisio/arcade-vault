@@ -28,6 +28,12 @@ Currently integrated games: **Asteroids, Tetris, Arkanoid, Snake** (canvas/JS va
 - **`/spec-impl`** — implement a spec step by step (mark each check, don't skip steps without explicit OK).
 - **`/add-game`** — generate a spec to integrate a new canvas/JS game with leaderboard + platform HUD, following the Asteroids pattern. Produces a spec, does not write code.
 
+## Agents
+
+- **`game-planner`** — upstream de `/add-game`. Sugiere el próximo juego retro que encaja con la plataforma, sin repetir sugerencias previas. Mantiene historial en `references/suggested_games.md`.
+- **`game-jam`** — dado un TEMA, elige un juego retro autónomamente y genera 2 specs completos en `specs/game-jam/{game-id}/` (mecánica + plataforma/leaderboard). Lee historial para no repetir.
+- **`skin-designer`** — dado el slug de un juego, implementa directamente ≥3 skins (`classic`, `retro`, `neon` + extras) en `game.js` y añade el selector en `play/page.tsx`. Mantiene estado en `references/game_with_thene.md`. Aplica cambios reales, no genera specs.
+
 ## MCP
 
 - **supabase** (`.mcp.json`) — HTTP server for the linked project. Use `list_tables` before schema changes; `get_logs`/`get_advisors` before debugging fixes.
