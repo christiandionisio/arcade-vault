@@ -4,6 +4,56 @@
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
+  const SKINS = {
+    classic: {
+      bg: "#000000",
+      filter: "none",
+      hudText: "#ffffff",
+      overlayBg: "rgba(0,0,0,0.6)",
+      pauseBg: "rgba(0,0,0,0.65)",
+      btnActive: "#f0c040",
+      btnActiveTxt: "#000000",
+    },
+    retro: {
+      bg: "#1a0800",
+      filter: "sepia(0.9) saturate(2) hue-rotate(10deg) brightness(0.9)",
+      hudText: "#ffaa44",
+      overlayBg: "rgba(20,8,0,0.72)",
+      pauseBg: "rgba(20,8,0,0.78)",
+      btnActive: "#ff8800",
+      btnActiveTxt: "#000000",
+    },
+    neon: {
+      bg: "#05050f",
+      filter: "hue-rotate(170deg) saturate(3) brightness(1.4)",
+      hudText: "#00ffcc",
+      overlayBg: "rgba(0,0,15,0.72)",
+      pauseBg: "rgba(0,0,15,0.78)",
+      btnActive: "#00ffcc",
+      btnActiveTxt: "#000000",
+    },
+    candy: {
+      bg: "#150010",
+      filter: "hue-rotate(280deg) saturate(2.5) brightness(1.1)",
+      hudText: "#ff88ff",
+      overlayBg: "rgba(15,0,12,0.72)",
+      pauseBg: "rgba(15,0,12,0.78)",
+      btnActive: "#ff44cc",
+      btnActiveTxt: "#ffffff",
+    },
+  };
+
+  let activeSkin = SKINS.classic;
+
+  window.gameSkins = Object.keys(SKINS);
+  window.setSkin = (name) => {
+    activeSkin = SKINS[name] ?? activeSkin;
+    localStorage.setItem("arkanoid-skin", name);
+  };
+
+  const _savedSkin = localStorage.getItem("arkanoid-skin");
+  if (_savedSkin && SKINS[_savedSkin]) activeSkin = SKINS[_savedSkin];
+
   const PADDLE_SPEED = 400;
   const BLOCK_COLS = 10;
   const BLOCK_ROWS = 6;
@@ -221,9 +271,9 @@
   }
 
   function drawOverlay(message) {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillStyle = activeSkin.overlayBg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = activeSkin.hudText;
     ctx.font = "bold 64px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -238,10 +288,10 @@
     (canvas.width - (5 * PAUSE_BTN_W + 4 * PAUSE_BTN_GAP)) / 2;
 
   function drawPauseOverlay() {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.fillStyle = activeSkin.pauseBg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = activeSkin.hudText;
     ctx.font = "bold 56px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -253,14 +303,14 @@
     for (let i = 0; i < 5; i++) {
       const bx = PAUSE_BTN_ROW_X + i * (PAUSE_BTN_W + PAUSE_BTN_GAP);
       const isActive = i + 1 === currentLevel;
-      ctx.fillStyle = isActive ? "#f0c040" : "#444";
-      ctx.strokeStyle = "#fff";
+      ctx.fillStyle = isActive ? activeSkin.btnActive : "#444";
+      ctx.strokeStyle = activeSkin.hudText;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.roundRect(bx, PAUSE_BTN_Y, PAUSE_BTN_W, PAUSE_BTN_H, 6);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = isActive ? "#000" : "#fff";
+      ctx.fillStyle = isActive ? activeSkin.btnActiveTxt : activeSkin.hudText;
       ctx.font = "bold 20px monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -269,8 +319,10 @@
   }
 
   function draw() {
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = activeSkin.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.filter = activeSkin.filter;
 
     for (const block of blocks) {
       if (block.alive)
@@ -302,8 +354,10 @@
     drawSprite(ctx, "paddle", paddle.x, paddle.y, paddle.w, paddle.h);
     drawSprite(ctx, "ball", ball.x, ball.y, ball.w, ball.h);
 
+    ctx.filter = "none";
+
     if (gameState === "playing") {
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = activeSkin.hudText;
       ctx.font = "bold 18px monospace";
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
@@ -312,10 +366,12 @@
       ctx.fillText("Nivel: " + currentLevel, canvas.width / 2, 10);
       const ballSize = 16;
       const ballSpacing = 4;
+      ctx.filter = activeSkin.filter;
       for (let i = 0; i < lives; i++) {
         const bx = canvas.width - 10 - (lives - i) * (ballSize + ballSpacing);
         drawSprite(ctx, "ball", bx, 10, ballSize, ballSize);
       }
+      ctx.filter = "none";
     }
 
     if (gameState === "gameover") drawOverlay("GAME OVER");

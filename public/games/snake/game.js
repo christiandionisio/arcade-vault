@@ -1,8 +1,76 @@
 (function () {
   "use strict";
 
+  const SKINS = {
+    classic: {
+      bg: "#1a2e1a",
+      grid: "#223322",
+      headFill: "#55ee55",
+      headR: 40,
+      headG: 180,
+      headB: 40,
+      bodyFadeG: 60,
+      eyes: "#003300",
+      gameOverText: "#ff4444",
+    },
+    retro: {
+      bg: "#1a0a00",
+      grid: "#2a1400",
+      headFill: "#ffaa00",
+      headR: 80,
+      headG: 40,
+      headB: 0,
+      bodyFadeG: 30,
+      eyes: "#330000",
+      gameOverText: "#ff6600",
+    },
+    neon: {
+      bg: "#050510",
+      grid: "#0a0a20",
+      headFill: "#00ffcc",
+      headR: 0,
+      headG: 200,
+      headB: 80,
+      bodyFadeG: 80,
+      eyes: "#001133",
+      gameOverText: "#ff00ff",
+    },
+    forest: {
+      bg: "#0d1f0d",
+      grid: "#162916",
+      headFill: "#7ec850",
+      headR: 30,
+      headG: 90,
+      headB: 20,
+      bodyFadeG: 50,
+      eyes: "#0a1a0a",
+      gameOverText: "#a0ff60",
+    },
+    matrix: {
+      bg: "#000000",
+      grid: "#001100",
+      headFill: "#00ff41",
+      headR: 0,
+      headG: 150,
+      headB: 20,
+      bodyFadeG: 100,
+      eyes: "#000800",
+      gameOverText: "#00ff41",
+    },
+  };
+  let activeSkin = SKINS.classic;
+
+  window.gameSkins = Object.keys(SKINS);
+  window.setSkin = (name) => {
+    activeSkin = SKINS[name] ?? activeSkin;
+    localStorage.setItem("snake-skin", name);
+  };
+
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
+
+  const _savedSkin = localStorage.getItem("snake-skin");
+  if (_savedSkin && SKINS[_savedSkin]) activeSkin = SKINS[_savedSkin];
 
   const CELL = 30;
   const COLS = 20;
@@ -80,9 +148,9 @@
   }
 
   function drawGrid() {
-    ctx.fillStyle = "#1a2e1a";
+    ctx.fillStyle = activeSkin.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "#223322";
+    ctx.strokeStyle = activeSkin.grid;
     ctx.lineWidth = 1;
     for (let r = 0; r <= ROWS; r++) {
       ctx.beginPath();
@@ -118,16 +186,18 @@
       const x = seg.c * CELL;
       const y = seg.r * CELL;
       if (i === 0) {
-        ctx.fillStyle = "#55ee55";
+        ctx.fillStyle = activeSkin.headFill;
       } else {
         const t = i / snake.length;
-        const g = Math.round(180 - t * 60);
-        ctx.fillStyle = `rgb(40,${g},40)`;
+        const r = activeSkin.headR;
+        const g = Math.round(activeSkin.headG - t * activeSkin.bodyFadeG);
+        const b = activeSkin.headB;
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
       }
       ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
 
       if (i === 0) {
-        ctx.fillStyle = "#003300";
+        ctx.fillStyle = activeSkin.eyes;
         const eyeSize = 4;
         const ex1 = dir.c === -1 ? x + 4 : dir.r !== 0 ? x + 5 : x + CELL - 10;
         const ex2 =
@@ -146,7 +216,7 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.textAlign = "center";
-    ctx.fillStyle = "#ff4444";
+    ctx.fillStyle = activeSkin.gameOverText;
     ctx.font = "bold 52px monospace";
     ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 20);
 
