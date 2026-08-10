@@ -86,6 +86,7 @@ export default function TetrisPlayPage() {
       finalScore.current = score;
       setSaved(false);
       setSaveError(null);
+      (window as Win).gamePaused = true;
       setShowModal(true);
     };
     window.addEventListener("gameOver", handler);

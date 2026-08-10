@@ -2999,6 +2999,7 @@ a {
 .dp .dp-arrow {
   width: 20px;
   height: 20px;
+  pointer-events: none;
   transition: filter 140ms;
 }
 .dp.on {
@@ -3143,6 +3144,7 @@ a {
   border-radius: 50%;
   border: 1px dashed currentColor;
   opacity: 0;
+  pointer-events: none;
   transition:
     opacity 140ms,
     transform 200ms;
