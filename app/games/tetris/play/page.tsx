@@ -19,7 +19,12 @@ type GameState = {
   level: number;
   gameOver: boolean;
 };
-type Win = Window & { gamePaused?: boolean; gameState?: GameState };
+type Win = Window & {
+  gamePaused?: boolean;
+  gameState?: GameState;
+  gameSkins?: string[];
+  setSkin?: (name: string) => void;
+};
 
 export default function TetrisPlayPage() {
   const { user } = useUser();
@@ -31,6 +36,8 @@ export default function TetrisPlayPage() {
     gameOver: false,
   });
   const [paused, setPaused] = useState(false);
+  const [skins, setSkins] = useState<string[]>([]);
+  const [activeSkin, setActiveSkin] = useState("classic");
   const [showModal, setShowModal] = useState(false);
   const [playerName, setPlayerName] = useState(user?.name ?? "");
   const [saved, setSaved] = useState(false);
@@ -79,11 +86,29 @@ export default function TetrisPlayPage() {
     return () => window.removeEventListener("gameOver", handler);
   }, []);
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      const win = window as Win;
+      if (win.gameSkins) {
+        setSkins(win.gameSkins);
+        const saved = localStorage.getItem("tetris-skin");
+        if (saved && win.gameSkins.includes(saved)) setActiveSkin(saved);
+        clearInterval(id);
+      }
+    }, 100);
+    return () => clearInterval(id);
+  }, []);
+
   function togglePause() {
     setPaused((p) => {
       (window as Win).gamePaused = !p;
       return !p;
     });
+  }
+
+  function handleSkinChange(name: string) {
+    (window as Win).setSkin?.(name);
+    setActiveSkin(name);
   }
 
   async function handleSave() {
@@ -170,6 +195,19 @@ export default function TetrisPlayPage() {
             </span>
           </div>
           <div className="hud-actions">
+            {skins.length > 0 && (
+              <select
+                value={activeSkin}
+                onChange={(e) => handleSkinChange(e.target.value)}
+                className="pixel text-xs bg-black border border-white/20 text-white px-1 py-0.5 cursor-pointer"
+              >
+                {skins.map((s) => (
+                  <option key={s} value={s}>
+                    {s.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            )}
             <button
               className="btn ghost"
               style={{ padding: "8px 14px", fontSize: "9px" }}

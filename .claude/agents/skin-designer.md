@@ -154,27 +154,25 @@ Realizar los siguientes cambios con Edit (en orden):
    };
    ```
 
-5. **Selector en HUD** — añadir en el bloque `.player-hud`, después de los botones de control (PAUSA/FIN), un nuevo bloque:
+5. **Selector en HUD** — añadir en el bloque `.player-hud`, **a la izquierda del botón PAUSA, después del indicador de nivel** (no al final de los botones). Usar un `<select>` combobox compacto, no botones individuales:
    ```tsx
    {
      skins.length > 0 && (
-       <div className="hud-skins">
-         <span className="pixel text-xs opacity-60">SKIN</span>
-         <div className="hud-skin-btns">
-           {skins.map((s) => (
-             <button
-               key={s}
-               onClick={() => handleSkinChange(s)}
-               className={`btn pixel text-xs ${activeSkin === s ? "skin-active" : ""}`}
-             >
-               {s.toUpperCase()}
-             </button>
-           ))}
-         </div>
-       </div>
+       <select
+         value={activeSkin}
+         onChange={(e) => handleSkinChange(e.target.value)}
+         className="pixel text-xs bg-black border border-white/20 text-white px-1 py-0.5 cursor-pointer"
+       >
+         {skins.map((s) => (
+           <option key={s} value={s}>
+             {s.toUpperCase()}
+           </option>
+         ))}
+       </select>
      );
    }
    ```
+   Colocarlo inmediatamente antes del botón PAUSA en el JSX, después del nivel.
 
 ### Paso 5 — Actualizar historial
 

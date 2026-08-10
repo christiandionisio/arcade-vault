@@ -3,6 +3,72 @@
 
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
+
+  // ── Skins ─────────────────────────────────────────────────────────────────────
+  const SKINS = {
+    classic: {
+      bg: "#000",
+      ship: "#fff",
+      thruster: "rgba(255,130,0,0.85)",
+      asteroid: "#fff",
+      bullet: "#fff",
+      particle: "255,255,255",
+      powerup: "#0ff",
+      tripleShot: "#0ff",
+      hud: "#fff",
+      overlay: "#fff",
+      overlaySub: "rgba(255,255,255,0.65)",
+    },
+    retro: {
+      bg: "#0d0800",
+      ship: "#ffaa44",
+      thruster: "rgba(255,60,0,0.9)",
+      asteroid: "#cc8833",
+      bullet: "#ffcc66",
+      particle: "255,180,60",
+      powerup: "#ff8800",
+      tripleShot: "#ff8800",
+      hud: "#ffaa44",
+      overlay: "#ffaa44",
+      overlaySub: "rgba(255,170,68,0.65)",
+    },
+    neon: {
+      bg: "#030310",
+      ship: "#00ffff",
+      thruster: "rgba(255,0,200,0.9)",
+      asteroid: "#ff00ff",
+      bullet: "#00ff88",
+      particle: "0,255,136",
+      powerup: "#ffff00",
+      tripleShot: "#ffff00",
+      hud: "#00ffff",
+      overlay: "#00ffff",
+      overlaySub: "rgba(0,255,255,0.65)",
+    },
+    void: {
+      bg: "#08000f",
+      ship: "#cc88ff",
+      thruster: "rgba(100,0,255,0.9)",
+      asteroid: "#6633aa",
+      bullet: "#ff44ff",
+      particle: "180,80,255",
+      powerup: "#ff88ff",
+      tripleShot: "#ff88ff",
+      hud: "#cc88ff",
+      overlay: "#cc88ff",
+      overlaySub: "rgba(204,136,255,0.65)",
+    },
+  };
+  let activeSkin = SKINS.classic;
+
+  window.gameSkins = Object.keys(SKINS);
+  window.setSkin = (name) => {
+    activeSkin = SKINS[name] ?? activeSkin;
+    localStorage.setItem("asteroids-skin", name);
+  };
+
+  const _savedSkin = localStorage.getItem("asteroids-skin");
+  if (_savedSkin && SKINS[_savedSkin]) activeSkin = SKINS[_savedSkin];
   const W = 800;
   const H = 600;
 
@@ -58,7 +124,7 @@
     }
 
     draw() {
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = activeSkin.bullet;
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
       ctx.fill();
@@ -113,7 +179,7 @@
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.rot);
-      ctx.strokeStyle = "#fff";
+      ctx.strokeStyle = activeSkin.asteroid;
       ctx.lineWidth = 1.5;
       ctx.lineJoin = "round";
       ctx.beginPath();
@@ -153,12 +219,12 @@
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(Math.PI / 4);
-      ctx.strokeStyle = "#0ff";
+      ctx.strokeStyle = activeSkin.powerup;
       ctx.lineWidth = 2;
       const r = this.radius * pulse;
       ctx.strokeRect(-r, -r, r * 2, r * 2);
       ctx.restore();
-      ctx.fillStyle = "#0ff";
+      ctx.fillStyle = activeSkin.powerup;
       ctx.font = "bold 12px monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -236,7 +302,7 @@
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.angle);
-      ctx.strokeStyle = "#fff";
+      ctx.strokeStyle = activeSkin.ship;
       ctx.lineWidth = 1.5;
       ctx.lineJoin = "round";
 
@@ -255,7 +321,7 @@
         ctx.moveTo(-8, -4);
         ctx.lineTo(-8 - rand(6, 14), 0);
         ctx.lineTo(-8, 4);
-        ctx.strokeStyle = "rgba(255, 130, 0, 0.85)";
+        ctx.strokeStyle = activeSkin.thruster;
         ctx.stroke();
       }
 
@@ -286,7 +352,7 @@
 
     draw() {
       const alpha = this.ttl / this.life;
-      ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(2)})`;
+      ctx.strokeStyle = `rgba(${activeSkin.particle},${alpha.toFixed(2)})`;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
@@ -451,7 +517,7 @@
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(-Math.PI / 2);
-    ctx.strokeStyle = "#fff";
+    ctx.strokeStyle = activeSkin.hud;
     ctx.lineWidth = 1.2;
     ctx.lineJoin = "round";
     ctx.beginPath();
@@ -465,7 +531,7 @@
   }
 
   function drawHUD() {
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = activeSkin.hud;
     ctx.font = "15px monospace";
 
     ctx.textAlign = "left";
@@ -478,23 +544,23 @@
 
     if (ship.tripleShot > 0) {
       ctx.textAlign = "left";
-      ctx.fillStyle = "#0ff";
+      ctx.fillStyle = activeSkin.tripleShot;
       ctx.fillText(`3x  ${ship.tripleShot.toFixed(1)}s`, 14, 46);
     }
   }
 
   function drawOverlay(title, sub) {
     ctx.textAlign = "center";
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = activeSkin.overlay;
     ctx.font = "bold 46px monospace";
     ctx.fillText(title, W / 2, H / 2 - 18);
     ctx.font = "18px monospace";
-    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.fillStyle = activeSkin.overlaySub;
     ctx.fillText(sub, W / 2, H / 2 + 22);
   }
 
   function draw() {
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = activeSkin.bg;
     ctx.fillRect(0, 0, W, H);
 
     particles.forEach((p) => p.draw());
