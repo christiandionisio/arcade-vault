@@ -2,7 +2,7 @@
 
 | Campo        | Valor                                                                                                                               |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Estado       | Draft                                                                                                                               |
+| Estado       | Approved                                                                                                                               |
 | Dependencias | 10 (Mobile Touch Controls)                                                                                                          |
 | Fecha        | 2026-08-09                                                                                                                          |
 | Objetivo     | Rediseñar la apariencia visual de `MobileGamepad` para que coincida con el diseño neón de `references/gamepad-assets/gamepad.html`. |
