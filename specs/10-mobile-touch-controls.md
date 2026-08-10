@@ -2,7 +2,7 @@
 
 | Campo        | Valor                                                                                                                                                                                               |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Estado       | Approved                                                                                                                                                                                               |
+| Estado       | Implemented                                                                                                                                                                                               |
 | Dependencias | 05 (Asteroids), 07 (Tetris), 08 (Arkanoid), 09 (Snake)                                                                                                                                              |
 | Fecha        | 2026-08-09                                                                                                                                                                                          |
 | Objetivo     | Añadir layout mobile y gamepad virtual táctil en las play pages de todos los juegos, ocultando el HUD desktop y exponiendo solo los controles esenciales (D-pad + 2 botones acción + PAUSA + skin). |
