@@ -7,6 +7,7 @@ const COVER_MAP: Record<string, string> = {
   tetris: "cover-tetris",
   arkanoid: "cover-arkanoid",
   snake: "cover-snake",
+  frogger: "cover-frogger",
 };
 
 const COLOR_MAP: Record<string, string> = {
@@ -14,6 +15,7 @@ const COLOR_MAP: Record<string, string> = {
   tetris: "#4dd0e1",
   arkanoid: "#e84545",
   snake: "#2d5a2d",
+  frogger: "#84cc16",
 };
 
 export default async function LibraryPage() {
