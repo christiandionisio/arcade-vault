@@ -10,5 +10,6 @@
 | asteroids | ✅      | ✅    | ✅   | void           | –                  | 2026-08-09           |
 | snake     | ✅      | ✅    | ✅   | forest, matrix | –                  | 2026-08-09           |
 | arkanoid  | ✅      | ✅    | ✅   | candy          | –                  | 2026-08-09           |
+| frogger   | ✅      | ✅    | ✅   | jungle         | –                  | 2026-08-11           |
 
 Leyenda: `✅` aplicado y verificado · `🟡` en progreso · `–` pendiente
