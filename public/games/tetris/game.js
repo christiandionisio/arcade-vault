@@ -81,6 +81,8 @@
   window.setSkin = (name) => {
     activeSkin = SKINS[name] ?? activeSkin;
     localStorage.setItem("tetris-skin", name);
+    buildStaticLayer();
+    dirty = true;
   };
 
   const _savedSkin = localStorage.getItem("tetris-skin");
@@ -144,6 +146,32 @@
 
   const LINE_SCORES = [0, 100, 300, 500, 800];
 
+  let staticLayer = null;
+
+  function buildStaticLayer() {
+    const offscreen = document.createElement("canvas");
+    offscreen.width = COLS * BLOCK;
+    offscreen.height = ROWS * BLOCK;
+    const octx = offscreen.getContext("2d");
+    octx.fillStyle = activeSkin.bg;
+    octx.fillRect(0, 0, offscreen.width, offscreen.height);
+    octx.strokeStyle = activeSkin.grid;
+    octx.lineWidth = 0.5;
+    for (let c = 1; c < COLS; c++) {
+      octx.beginPath();
+      octx.moveTo(c * BLOCK, 0);
+      octx.lineTo(c * BLOCK, ROWS * BLOCK);
+      octx.stroke();
+    }
+    for (let r = 1; r < ROWS; r++) {
+      octx.beginPath();
+      octx.moveTo(0, r * BLOCK);
+      octx.lineTo(COLS * BLOCK, r * BLOCK);
+      octx.stroke();
+    }
+    staticLayer = offscreen;
+  }
+
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
   const nextCanvas = document.getElementById("next-canvas");
@@ -167,7 +195,8 @@
     lastTime,
     dropAccum,
     dropInterval,
-    animId;
+    animId,
+    dirty;
 
   let gameOverFired = false;
 
@@ -215,6 +244,7 @@
       if (!collide(rotated, current.x + kick, current.y)) {
         current.shape = rotated;
         current.x += kick;
+        dirty = true;
         return;
       }
     }
@@ -256,6 +286,7 @@
     const gy = ghostY();
     score += (gy - current.y) * 2;
     current.y = gy;
+    dirty = true;
     lockPiece();
   }
 
@@ -263,6 +294,7 @@
     if (!collide(current.shape, current.x, current.y + 1)) {
       current.y++;
       score += 1;
+      dirty = true;
       updateHUD();
     } else {
       lockPiece();
@@ -278,6 +310,7 @@
   function spawn() {
     current = next;
     next = randomPiece();
+    dirty = true;
     if (collide(current.shape, current.x, current.y)) {
       endGame();
     }
@@ -302,27 +335,8 @@
     context.globalAlpha = 1;
   }
 
-  function drawGrid() {
-    ctx.strokeStyle = activeSkin.grid;
-    ctx.lineWidth = 0.5;
-    for (let c = 1; c < COLS; c++) {
-      ctx.beginPath();
-      ctx.moveTo(c * BLOCK, 0);
-      ctx.lineTo(c * BLOCK, ROWS * BLOCK);
-      ctx.stroke();
-    }
-    for (let r = 1; r < ROWS; r++) {
-      ctx.beginPath();
-      ctx.moveTo(0, r * BLOCK);
-      ctx.lineTo(COLS * BLOCK, r * BLOCK);
-      ctx.stroke();
-    }
-  }
-
   function draw() {
-    ctx.fillStyle = activeSkin.bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    drawGrid();
+    ctx.drawImage(staticLayer, 0, 0);
 
     // board
     for (let r = 0; r < ROWS; r++)
@@ -399,24 +413,29 @@
       animId = requestAnimationFrame(loop);
       return;
     }
-    const dt = ts - lastTime;
+    const dt = Math.min(ts - lastTime, 50);
     lastTime = ts;
     dropAccum += dt;
     if (dropAccum >= dropInterval) {
       dropAccum = 0;
       if (!collide(current.shape, current.x, current.y + 1)) {
         current.y++;
+        dirty = true;
       } else {
         lockPiece();
       }
     }
     if (gameOver) return;
     window.gameState = { score, lives: "-", level, gameOver };
-    draw();
+    if (dirty) {
+      draw();
+      dirty = false;
+    }
     animId = requestAnimationFrame(loop);
   }
 
   function init() {
+    buildStaticLayer();
     board = createBoard();
     score = 0;
     lines = 0;
@@ -435,7 +454,7 @@
     animId = requestAnimationFrame(loop);
   }
 
-  document.addEventListener("keydown", (e) => {
+  function onKeyDown(e) {
     if (e.code === "KeyP") {
       togglePause();
       return;
@@ -443,10 +462,16 @@
     if (paused || gameOver) return;
     switch (e.code) {
       case "ArrowLeft":
-        if (!collide(current.shape, current.x - 1, current.y)) current.x--;
+        if (!collide(current.shape, current.x - 1, current.y)) {
+          current.x--;
+          dirty = true;
+        }
         break;
       case "ArrowRight":
-        if (!collide(current.shape, current.x + 1, current.y)) current.x++;
+        if (!collide(current.shape, current.x + 1, current.y)) {
+          current.x++;
+          dirty = true;
+        }
         break;
       case "ArrowDown":
         softDrop();
@@ -461,9 +486,17 @@
         break;
     }
     updateHUD();
-  });
+  }
+
+  document.addEventListener("keydown", onKeyDown);
 
   if (restartBtn) restartBtn.addEventListener("click", init);
+
+  window.destroyGame = () => {
+    cancelAnimationFrame(animId);
+    document.removeEventListener("keydown", onKeyDown);
+    if (restartBtn) restartBtn.removeEventListener("click", init);
+  };
 
   init();
 })();

@@ -44,11 +44,13 @@
   };
 
   let activeSkin = SKINS.classic;
+  let dirty = true;
 
   window.gameSkins = Object.keys(SKINS);
   window.setSkin = (name) => {
     activeSkin = SKINS[name] ?? activeSkin;
     localStorage.setItem("arkanoid-skin", name);
+    dirty = true;
   };
 
   const _savedSkin = localStorage.getItem("arkanoid-skin");
@@ -68,10 +70,31 @@
   const paddle = { x: 0, y: 560, w: 81, h: 14 };
   const ball = { x: 0, y: 0, w: 16, h: 16, vx: 200, vy: -300 };
 
-  const bounceSound = new Audio(
-    "/games/arkanoid/assets/sounds/ball-bounce.mp3",
+  const AUDIO_POOL_SIZE = 4;
+  const bounceSoundPool = Array.from(
+    { length: AUDIO_POOL_SIZE },
+    () => new Audio("/games/arkanoid/assets/sounds/ball-bounce.mp3"),
   );
-  const breakSound = new Audio("/games/arkanoid/assets/sounds/break-sound.mp3");
+  const breakSoundPool = Array.from(
+    { length: AUDIO_POOL_SIZE },
+    () => new Audio("/games/arkanoid/assets/sounds/break-sound.mp3"),
+  );
+  let bouncePoolIdx = 0;
+  let breakPoolIdx = 0;
+
+  function playBounce() {
+    const snd = bounceSoundPool[bouncePoolIdx];
+    bouncePoolIdx = (bouncePoolIdx + 1) % AUDIO_POOL_SIZE;
+    snd.currentTime = 0;
+    snd.play();
+  }
+
+  function playBreak() {
+    const snd = breakSoundPool[breakPoolIdx];
+    breakPoolIdx = (breakPoolIdx + 1) % AUDIO_POOL_SIZE;
+    snd.currentTime = 0;
+    snd.play();
+  }
 
   let blocks = [];
   let explosions = [];
@@ -124,7 +147,7 @@
     );
   }
 
-  canvas.addEventListener("click", (e) => {
+  function onCanvasClick(e) {
     if (!isPaused) return;
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -141,12 +164,13 @@
       ) {
         loadLevel(i + 1);
         isPaused = false;
+        dirty = true;
         return;
       }
     }
-  });
+  }
 
-  canvas.addEventListener("mousemove", (e) => {
+  function onMouseMove(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const mouseX = (e.clientX - rect.left) * scaleX;
@@ -154,24 +178,33 @@
       0,
       Math.min(canvas.width - paddle.w, mouseX - paddle.w / 2),
     );
-  });
+    dirty = true;
+  }
 
-  document.addEventListener("keydown", (e) => {
+  function onKeyDown(e) {
     if (e.key in keys) keys[e.key] = true;
     if (
       (e.key === "p" || e.key === "P" || e.key === "Escape") &&
       gameState === "playing"
     ) {
       isPaused = !isPaused;
+      dirty = true;
     }
-  });
+  }
 
-  document.addEventListener("keyup", (e) => {
+  function onKeyUp(e) {
     if (e.key in keys) keys[e.key] = false;
-  });
+  }
+
+  canvas.addEventListener("click", onCanvasClick);
+  canvas.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("keyup", onKeyUp);
 
   function update(dt) {
     if (gameState !== "playing") return;
+
+    dirty = true;
 
     // Paddle
     if (keys.ArrowLeft) paddle.x = Math.max(0, paddle.x - PADDLE_SPEED * dt);
@@ -189,17 +222,17 @@
     if (ball.x <= 0) {
       ball.x = 0;
       ball.vx = Math.abs(ball.vx);
-      bounceSound.cloneNode().play();
+      playBounce();
     }
     if (ball.x + ball.w >= canvas.width) {
       ball.x = canvas.width - ball.w;
       ball.vx = -Math.abs(ball.vx);
-      bounceSound.cloneNode().play();
+      playBounce();
     }
     if (ball.y <= 0) {
       ball.y = 0;
       ball.vy = Math.abs(ball.vy);
-      bounceSound.cloneNode().play();
+      playBounce();
     }
 
     // Paddle bounce
@@ -212,7 +245,7 @@
     ) {
       ball.y = paddle.y - ball.h;
       ball.vy = -Math.abs(ball.vy);
-      bounceSound.cloneNode().play();
+      playBounce();
     }
 
     // Block collisions
@@ -230,7 +263,7 @@
         });
         score += 10;
         ball.vy = -ball.vy;
-        breakSound.cloneNode().play();
+        playBreak();
         if (blocks.every((b) => !b.alive)) {
           if (currentLevel < 5) {
             loadLevel(currentLevel + 1);
@@ -249,8 +282,10 @@
     }
 
     // Explosions
-    for (const exp of explosions) exp.elapsed += dt * 1000;
-    explosions = explosions.filter((exp) => exp.elapsed < EXPLOSION_DURATION);
+    for (let i = explosions.length - 1; i >= 0; i--) {
+      explosions[i].elapsed += dt * 1000;
+      if (explosions[i].elapsed >= EXPLOSION_DURATION) explosions.splice(i, 1);
+    }
 
     // Ball lost
     if (ball.y > canvas.height) {
@@ -380,19 +415,24 @@
   }
 
   let lastTime = null;
+  let rafId = null;
 
   function loop(timestamp) {
     if (window.gamePaused) {
-      requestAnimationFrame(loop);
+      rafId = requestAnimationFrame(loop);
       return;
     }
 
     if (lastTime === null) lastTime = timestamp;
-    const dt = (timestamp - lastTime) / 1000;
+    const dt = Math.min(timestamp - lastTime, 50) / 1000;
     lastTime = timestamp;
 
     if (!isPaused) update(dt);
-    draw();
+
+    if (dirty) {
+      draw();
+      dirty = false;
+    }
 
     window.gameState = {
       score,
@@ -401,12 +441,20 @@
       gameOver: gameState === "gameover" || gameState === "win",
     };
 
-    requestAnimationFrame(loop);
+    rafId = requestAnimationFrame(loop);
   }
+
+  window.destroyGame = () => {
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    canvas.removeEventListener("click", onCanvasClick);
+    canvas.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("keydown", onKeyDown);
+    document.removeEventListener("keyup", onKeyUp);
+  };
 
   loadSpritesheet(() => {
     initPaddle();
     loadLevel(1);
-    requestAnimationFrame(loop);
+    rafId = requestAnimationFrame(loop);
   });
 })();

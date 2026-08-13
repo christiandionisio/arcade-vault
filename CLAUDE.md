@@ -33,6 +33,7 @@ Currently integrated games: **Asteroids, Tetris, Arkanoid, Snake** (canvas/JS va
 - **`game-planner`** — upstream de `/add-game`. Sugiere el próximo juego retro que encaja con la plataforma, sin repetir sugerencias previas. Mantiene historial en `references/suggested_games.md`.
 - **`game-jam`** — dado un TEMA, elige un juego retro autónomamente y genera 2 specs completos en `specs/game-jam/{game-id}/` (mecánica + plataforma/leaderboard). Lee historial para no repetir.
 - **`skin-designer`** — dado el slug de un juego, implementa directamente ≥3 skins (`classic`, `retro`, `neon` + extras) en `game.js` y añade el selector en `play/page.tsx`. Mantiene estado en `references/game_with_thene.md`. Aplica cambios reales, no genera specs.
+- **`game-performance`** — dado el slug de un juego, audita su rendimiento contra el patrón del spec 12 (offscreen canvas, dirty flag, indexación O(1), cero allocations/useState por frame, cleanup de RAF/timers) y aplica los arreglos directamente en el archivo del juego. 1 juego por run. Aplica cambios reales, no genera specs.
 
 ## MCP
 

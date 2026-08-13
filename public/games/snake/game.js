@@ -64,6 +64,9 @@
   window.setSkin = (name) => {
     activeSkin = SKINS[name] ?? activeSkin;
     localStorage.setItem("snake-skin", name);
+    buildStaticLayer();
+    invalidateBodyColors();
+    dirty = true;
   };
 
   const canvas = document.getElementById("canvas");
@@ -82,10 +85,61 @@
   const fruitsImg = new Image();
   fruitsImg.src = "/games/snake/snake-assets/fruits.png";
 
-  let snake, dir, nextDir, fruit, fruitType;
+  let snake, fruit, fruitType;
+  const dir = { r: 0, c: 1 };
+  const nextDir = { r: 0, c: 1 };
+  const headBuf = { r: 0, c: 0 }; // reusable head buffer — no per-tick allocation
   let score, level, fruitsEaten, isGameOver;
   let tickAccum, lastTime;
   let gameOverFired = false;
+  let dirty = true;
+  let rafId = null;
+
+  // Offscreen canvas for static grid — rebuilt only on skin change
+  let staticLayer = null;
+
+  function buildStaticLayer() {
+    const off = document.createElement("canvas");
+    off.width = canvas.width;
+    off.height = canvas.height;
+    const octx = off.getContext("2d");
+    octx.fillStyle = activeSkin.bg;
+    octx.fillRect(0, 0, off.width, off.height);
+    octx.strokeStyle = activeSkin.grid;
+    octx.lineWidth = 1;
+    for (let r = 0; r <= ROWS; r++) {
+      octx.beginPath();
+      octx.moveTo(0, r * CELL);
+      octx.lineTo(off.width, r * CELL);
+      octx.stroke();
+    }
+    for (let c = 0; c <= COLS; c++) {
+      octx.beginPath();
+      octx.moveTo(c * CELL, 0);
+      octx.lineTo(c * CELL, off.height);
+      octx.stroke();
+    }
+    staticLayer = off;
+  }
+
+  // Reusable gameState object — no per-frame allocation
+  const gameStateObj = { score: 0, lives: 1, level: 1, gameOver: false };
+
+  // Pre-computed body color strings — rebuilt on skin change or snake growth
+  let bodyColorCache = [];
+
+  function rebuildBodyColors() {
+    const len = snake.length;
+    for (let i = bodyColorCache.length; i < len; i++) {
+      const t = i / len;
+      const g = Math.round(activeSkin.headG - t * activeSkin.bodyFadeG);
+      bodyColorCache[i] = `rgb(${activeSkin.headR},${g},${activeSkin.headB})`;
+    }
+  }
+
+  function invalidateBodyColors() {
+    bodyColorCache = [];
+  }
 
   function randomFruitPos() {
     const occupied = new Set(snake.map((s) => `${s.r},${s.c}`));
@@ -108,8 +162,10 @@
       { r: 10, c: 9 },
       { r: 10, c: 8 },
     ];
-    dir = { r: 0, c: 1 };
-    nextDir = { r: 0, c: 1 };
+    dir.r = 0;
+    dir.c = 1;
+    nextDir.r = 0;
+    nextDir.c = 1;
     score = 0;
     level = 1;
     fruitsEaten = 0;
@@ -117,53 +173,47 @@
     gameOverFired = false;
     tickAccum = 0;
     lastTime = null;
+    invalidateBodyColors();
     fruitType = fruitNames[Math.floor(Math.random() * fruitNames.length)];
     fruit = randomFruitPos();
   }
 
   function move() {
-    dir = { ...nextDir };
-    const head = { r: snake[0].r + dir.r, c: snake[0].c + dir.c };
+    dir.r = nextDir.r;
+    dir.c = nextDir.c;
+    headBuf.r = snake[0].r + dir.r;
+    headBuf.c = snake[0].c + dir.c;
 
-    if (head.r < 0 || head.r >= ROWS || head.c < 0 || head.c >= COLS) {
+    if (
+      headBuf.r < 0 ||
+      headBuf.r >= ROWS ||
+      headBuf.c < 0 ||
+      headBuf.c >= COLS
+    ) {
       isGameOver = true;
       return;
     }
-    if (snake.some((s) => s.r === head.r && s.c === head.c)) {
+    if (snake.some((s) => s.r === headBuf.r && s.c === headBuf.c)) {
       isGameOver = true;
       return;
     }
 
-    snake.unshift(head);
+    snake.unshift({ r: headBuf.r, c: headBuf.c });
 
-    if (head.r === fruit.r && head.c === fruit.c) {
+    if (headBuf.r === fruit.r && headBuf.c === fruit.c) {
       score += 10;
       fruitsEaten++;
       if (fruitsEaten % 5 === 0) level++;
       fruitType = fruitNames[Math.floor(Math.random() * fruitNames.length)];
       fruit = randomFruitPos();
+      invalidateBodyColors();
     } else {
       snake.pop();
     }
   }
 
   function drawGrid() {
-    ctx.fillStyle = activeSkin.bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = activeSkin.grid;
-    ctx.lineWidth = 1;
-    for (let r = 0; r <= ROWS; r++) {
-      ctx.beginPath();
-      ctx.moveTo(0, r * CELL);
-      ctx.lineTo(canvas.width, r * CELL);
-      ctx.stroke();
-    }
-    for (let c = 0; c <= COLS; c++) {
-      ctx.beginPath();
-      ctx.moveTo(c * CELL, 0);
-      ctx.lineTo(c * CELL, canvas.height);
-      ctx.stroke();
-    }
+    ctx.drawImage(staticLayer, 0, 0);
   }
 
   function drawFruit() {
@@ -182,18 +232,11 @@
   }
 
   function drawSnake() {
+    rebuildBodyColors();
     snake.forEach((seg, i) => {
       const x = seg.c * CELL;
       const y = seg.r * CELL;
-      if (i === 0) {
-        ctx.fillStyle = activeSkin.headFill;
-      } else {
-        const t = i / snake.length;
-        const r = activeSkin.headR;
-        const g = Math.round(activeSkin.headG - t * activeSkin.bodyFadeG);
-        const b = activeSkin.headB;
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
-      }
+      ctx.fillStyle = i === 0 ? activeSkin.headFill : bodyColorCache[i];
       ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
 
       if (i === 0) {
@@ -231,12 +274,13 @@
   }
 
   function loop(ts) {
+    rafId = requestAnimationFrame(loop);
+
     if (window.gamePaused) {
-      requestAnimationFrame(loop);
       return;
     }
 
-    const dt = ts - (lastTime ?? ts);
+    const dt = Math.min(ts - (lastTime ?? ts), 50);
     lastTime = ts;
 
     if (!isGameOver) {
@@ -244,59 +288,82 @@
       while (tickAccum >= tickSpeed()) {
         tickAccum -= tickSpeed();
         move();
+        dirty = true;
         if (isGameOver) break;
       }
     }
+
+    if (!dirty) return;
+    dirty = false;
 
     drawGrid();
     drawFruit();
     drawSnake();
     if (isGameOver) drawGameOver();
 
-    window.gameState = {
-      score,
-      lives: isGameOver ? 0 : 1,
-      level,
-      gameOver: isGameOver,
-    };
+    gameStateObj.score = score;
+    gameStateObj.lives = isGameOver ? 0 : 1;
+    gameStateObj.level = level;
+    gameStateObj.gameOver = isGameOver;
+    window.gameState = gameStateObj;
 
     if (isGameOver && !gameOverFired) {
       gameOverFired = true;
       window.dispatchEvent(new CustomEvent("gameOver", { detail: { score } }));
     }
-
-    requestAnimationFrame(loop);
   }
 
-  document.addEventListener("keydown", (e) => {
+  function onKeyDown(e) {
     switch (e.key) {
       case "ArrowUp":
       case "w":
       case "W":
-        if (dir.r !== 1) nextDir = { r: -1, c: 0 };
+        if (dir.r !== 1) {
+          nextDir.r = -1;
+          nextDir.c = 0;
+        }
         e.preventDefault();
         break;
       case "ArrowDown":
       case "s":
       case "S":
-        if (dir.r !== -1) nextDir = { r: 1, c: 0 };
+        if (dir.r !== -1) {
+          nextDir.r = 1;
+          nextDir.c = 0;
+        }
         e.preventDefault();
         break;
       case "ArrowLeft":
       case "a":
       case "A":
-        if (dir.c !== 1) nextDir = { r: 0, c: -1 };
+        if (dir.c !== 1) {
+          nextDir.r = 0;
+          nextDir.c = -1;
+        }
         e.preventDefault();
         break;
       case "ArrowRight":
       case "d":
       case "D":
-        if (dir.c !== -1) nextDir = { r: 0, c: 1 };
+        if (dir.c !== -1) {
+          nextDir.r = 0;
+          nextDir.c = 1;
+        }
         e.preventDefault();
         break;
     }
-  });
+  }
+  document.addEventListener("keydown", onKeyDown);
+
+  window.gameCleanup = () => {
+    cancelAnimationFrame(rafId);
+    document.removeEventListener("keydown", onKeyDown);
+    staticLayer = null;
+  };
 
   init();
-  fruitsImg.onload = () => requestAnimationFrame(loop);
+  buildStaticLayer();
+  fruitsImg.onload = () => {
+    rafId = requestAnimationFrame(loop);
+  };
 })();
