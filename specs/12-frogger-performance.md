@@ -89,6 +89,33 @@ Cuando el juego está pausado y `dirtyRef === false`, el loop llama `requestAnim
 - [ ] Memoria en DevTools (pestaña Memory → Heap snapshot) no crece de forma sostenida tras 30s de gameplay en Chrome desktop
 - [ ] Gameplay, colisiones, timer, leaderboard y skins funcionan igual que antes
 
+## Hallazgos durante la implementación
+
+### Bug: overlay de pausa no se renderizaba
+
+**Síntoma:** Al pausar, el canvas no mostraba "EN PAUSA" aunque las entidades sí se congelaban.
+
+**Causa raíz:** El `useEffect([paused])` actualizaba `pausedRef.current = paused`, pero no marcaba `dirtyRef.current = true`. Cuando el juego está pausado, `update()` retorna inmediatamente sin tocar `dirtyRef`, así que `loop()` nunca llama `draw()` y el overlay nunca aparece en pantalla.
+
+**Fix aplicado:** Añadir `dirtyRef.current = true` en el `useEffect([paused])`:
+
+```ts
+useEffect(() => {
+  pausedRef.current = paused;
+  dirtyRef.current = true; // fuerza un redraw para mostrar/ocultar el overlay
+}, [paused]);
+```
+
+**Lección:** El dirty flag debe marcarse en **cualquier cambio de estado visual externo**, no solo en los ticks de `update()`. Esto incluye: cambio de pausa, cambio de skin, y cualquier prop que afecte lo que se dibuja.
+
+### Nota sobre `buildStaticBg` como función de módulo
+
+Se colocó fuera del componente (nivel de módulo) porque:
+
+- No necesita refs ni estado React
+- Solo lee `SKINS[skinName]` y la API del canvas
+- Puede ser llamada tanto desde el `useEffect([skin])` como desde el `useEffect([], [])` principal sin problemas de closure
+
 ## Decisiones tomadas y descartadas
 
 | Decisión                                      | Resultado     | Razón                                                               |
