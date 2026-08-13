@@ -337,6 +337,53 @@ function roundTimeForLevel(level: number) {
   return Math.max(5, ROUND_TIME_BASE - (level - 1));
 }
 
+// ── Offscreen static background ────────────────────────────────────────────────
+function buildStaticBg(skinName: string): HTMLCanvasElement {
+  const sk = SKINS[skinName] ?? SKINS.classic;
+  const offscreen = document.createElement("canvas");
+  offscreen.width = CANVAS_W;
+  offscreen.height = CANVAS_H;
+  const ctx = offscreen.getContext("2d")!;
+
+  // Zone backgrounds
+  for (let row = 0; row < ROWS; row++) {
+    const y = row * CELL;
+    if (row === ROW_GOALS) ctx.fillStyle = sk.goalBg;
+    else if (row >= ROW_RIVER_TOP && row <= ROW_RIVER_BOT)
+      ctx.fillStyle = sk.riverBg;
+    else if (row === ROW_SAFE_MID) ctx.fillStyle = sk.safeBg;
+    else if (row === ROW_START) ctx.fillStyle = sk.safeBg;
+    else ctx.fillStyle = sk.roadBg;
+    ctx.fillRect(0, y, CANVAS_W, CELL);
+  }
+
+  // Road lane dashes
+  ctx.strokeStyle = "#ffffff18";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([8, 8]);
+  for (let row = ROW_ROAD_TOP + 1; row <= ROW_ROAD_BOT; row++) {
+    ctx.beginPath();
+    ctx.moveTo(0, row * CELL);
+    ctx.lineTo(CANVAS_W, row * CELL);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // River shimmer
+  ctx.strokeStyle = "#0f2a5020";
+  ctx.lineWidth = 1;
+  for (let row = ROW_RIVER_TOP; row <= ROW_RIVER_BOT; row++) {
+    for (let yi = 2; yi < CELL; yi += 8) {
+      ctx.beginPath();
+      ctx.moveTo(0, row * CELL + yi);
+      ctx.lineTo(CANVAS_W, row * CELL + yi);
+      ctx.stroke();
+    }
+  }
+
+  return offscreen;
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
 export default function FroggerGame({
   paused,
@@ -373,12 +420,18 @@ export default function FroggerGame({
     onGameOver,
   });
   const respawnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const staticBgRef = useRef<HTMLCanvasElement | null>(null);
+  const laneMapRef = useRef<Map<number, Lane>>(new Map());
+  const dirtyRef = useRef<boolean>(true);
 
   useEffect(() => {
     skinRef.current = SKINS[skin] ?? SKINS.classic;
+    staticBgRef.current = buildStaticBg(skin);
+    dirtyRef.current = true;
   }, [skin]);
   useEffect(() => {
     pausedRef.current = paused;
+    dirtyRef.current = true;
   }, [paused]);
   useEffect(() => {
     cbRef.current = { onScoreChange, onLivesChange, onLevelChange, onGameOver };
@@ -417,10 +470,19 @@ export default function FroggerGame({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
+    staticBgRef.current = buildStaticBg(skin);
     let rafId: number;
     let lastTime: number | null = null;
 
     // ── helpers ──────────────────────────────────────────────────────────────
+    function populateLaneMap(lanes: Lane[]) {
+      const m = laneMapRef.current;
+      m.clear();
+      for (const lane of lanes) m.set(lane.row, lane);
+    }
+
+    populateLaneMap(gsRef.current.lanes);
+
     function isSubmerged(e: Entity): boolean {
       return e.type === "turtle" && e.subTimer >= TURTLE_VISIBLE_MS;
     }
@@ -430,7 +492,7 @@ export default function FroggerGame({
     }
 
     function checkRoadCollision(frog: Frog, lanes: Lane[]): boolean {
-      const lane = lanes.find((l) => l.row === frog.row);
+      const lane = laneMapRef.current.get(frog.row);
       if (!lane) return false;
       for (const e of lane.entities) {
         if (overlaps(frog.col, e.col, e.width)) return true;
@@ -445,7 +507,7 @@ export default function FroggerGame({
       frog: Frog,
       lanes: Lane[],
     ): { lane: Lane; entity: Entity } | null {
-      const lane = lanes.find((l) => l.row === frog.row);
+      const lane = laneMapRef.current.get(frog.row);
       if (!lane) return null;
       for (const e of lane.entities) {
         if (isSubmerged(e)) continue;
@@ -483,6 +545,7 @@ export default function FroggerGame({
       gs.level++;
       gs.goalsOccupied = Array(5).fill(false);
       gs.lanes = buildLanes(gs.level);
+      populateLaneMap(gs.lanes);
       gs.frog = makeFrog();
       gs.highestRow = ROW_START;
       gs.roundTime = roundTimeForLevel(gs.level);
@@ -536,6 +599,7 @@ export default function FroggerGame({
     function update(dt: number) {
       const gs = gsRef.current;
       if (pausedRef.current || gs.over) return;
+      dirtyRef.current = true;
 
       const dtSec = dt / 1000;
 
@@ -788,29 +852,8 @@ export default function FroggerGame({
       const sk = skinRef.current;
       ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
-      // Zone backgrounds
-      for (let row = 0; row < ROWS; row++) {
-        const y = row * CELL;
-        if (row === ROW_GOALS) ctx.fillStyle = sk.goalBg;
-        else if (row >= ROW_RIVER_TOP && row <= ROW_RIVER_BOT)
-          ctx.fillStyle = sk.riverBg;
-        else if (row === ROW_SAFE_MID) ctx.fillStyle = sk.safeBg;
-        else if (row === ROW_START) ctx.fillStyle = sk.safeBg;
-        else ctx.fillStyle = sk.roadBg;
-        ctx.fillRect(0, y, CANVAS_W, CELL);
-      }
-
-      // Road lane dashes
-      ctx.strokeStyle = "#ffffff18";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([8, 8]);
-      for (let row = ROW_ROAD_TOP + 1; row <= ROW_ROAD_BOT; row++) {
-        ctx.beginPath();
-        ctx.moveTo(0, row * CELL);
-        ctx.lineTo(CANVAS_W, row * CELL);
-        ctx.stroke();
-      }
-      ctx.setLineDash([]);
+      // Static background (zones, road dashes, river shimmer)
+      if (staticBgRef.current) ctx.drawImage(staticBgRef.current, 0, 0);
 
       // Goal bays
       const DIVIDER_COLS = [0, 3, 6, 9, 12, 15];
@@ -832,18 +875,6 @@ export default function FroggerGame({
         ctx.lineWidth = 2;
         ctx.strokeRect(bx + 1, 1, bw - 2, CELL - 2);
         if (gs.goalsOccupied[i]) drawMiniGoalFrog(bx + bw / 2, CELL / 2);
-      }
-
-      // River shimmer lines
-      ctx.strokeStyle = "#0f2a5020";
-      ctx.lineWidth = 1;
-      for (let row = ROW_RIVER_TOP; row <= ROW_RIVER_BOT; row++) {
-        for (let yi = 2; yi < CELL; yi += 8) {
-          ctx.beginPath();
-          ctx.moveTo(0, row * CELL + yi);
-          ctx.lineTo(CANVAS_W, row * CELL + yi);
-          ctx.stroke();
-        }
       }
 
       // Entities
@@ -923,7 +954,10 @@ export default function FroggerGame({
       const dt = Math.min(ts - lastTime, 50);
       lastTime = ts;
       update(dt);
-      draw();
+      if (dirtyRef.current) {
+        draw();
+        dirtyRef.current = false;
+      }
       rafId = requestAnimationFrame(loop);
     }
 
