@@ -65,6 +65,7 @@
   window.setSkin = (name) => {
     activeSkin = SKINS[name] ?? activeSkin;
     localStorage.setItem("asteroids-skin", name);
+    dirty = true;
   };
 
   const _savedSkin = localStorage.getItem("asteroids-skin");
@@ -77,13 +78,15 @@
   const keys = {};
   const justPressed = {};
 
-  window.addEventListener("keydown", (e) => {
+  function onKeyDown(e) {
     if (!keys[e.code]) justPressed[e.code] = true;
     keys[e.code] = true;
-  });
-  window.addEventListener("keyup", (e) => {
+  }
+  function onKeyUp(e) {
     keys[e.code] = false;
-  });
+  }
+  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
 
   function pressed(code) {
     const val = justPressed[code];
@@ -351,8 +354,8 @@
     }
 
     draw() {
-      const alpha = this.ttl / this.life;
-      ctx.strokeStyle = `rgba(${activeSkin.particle},${alpha.toFixed(2)})`;
+      const alpha = (((this.ttl / this.life) * 100) | 0) / 100;
+      ctx.strokeStyle = `rgba(${activeSkin.particle},${alpha})`;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
@@ -369,6 +372,7 @@
   let gameOverFired;
   let powerUpSpawned;
   let killsSinceSpawn;
+  let dirty = true;
 
   function spawnAsteroids(count) {
     const SAFE_DIST = 130;
@@ -395,6 +399,7 @@
     level = 1;
     state = "playing";
     gameOverFired = false;
+    dirty = true;
     spawnAsteroids(4);
   }
 
@@ -431,19 +436,29 @@
     }
   }
 
+  // ── Utilidad: compactar array in-place sin allocations ────────────────────────
+  function compact(arr) {
+    let w = 0;
+    for (let r = 0; r < arr.length; r++) {
+      if (!arr[r].dead) arr[w++] = arr[r];
+    }
+    arr.length = w;
+  }
+
   // ── Update ────────────────────────────────────────────────────────────────────
   function update(dt) {
+    dirty = true;
     if (state === "gameover") {
       if (pressed("Space")) initGame();
       particles.forEach((p) => p.update(dt));
-      particles = particles.filter((p) => !p.dead);
+      compact(particles);
       return;
     }
 
     if (state === "dead") {
       deadTimer -= dt;
       particles.forEach((p) => p.update(dt));
-      particles = particles.filter((p) => !p.dead);
+      compact(particles);
       asteroids.forEach((a) => a.update(dt));
       if (deadTimer <= 0) {
         state = "playing";
@@ -463,9 +478,9 @@
     particles.forEach((p) => p.update(dt));
     powerUps.forEach((p) => p.update(dt));
 
-    bullets = bullets.filter((b) => !b.dead);
-    particles = particles.filter((p) => !p.dead);
-    powerUps = powerUps.filter((p) => !p.dead);
+    compact(bullets);
+    compact(particles);
+    compact(powerUps);
 
     for (const p of powerUps) {
       if (!p.dead && dist(ship, p) < ship.radius + p.radius) {
@@ -475,7 +490,6 @@
     }
 
     // Bala vs asteroide
-    const newAsteroids = [];
     for (const b of bullets) {
       for (const a of asteroids) {
         if (!a.dead && !b.dead && dist(b, a) < a.radius) {
@@ -483,7 +497,8 @@
           a.dead = true;
           score += POINTS[a.size];
           explode(a.x, a.y, a.size * 5);
-          newAsteroids.push(...a.split());
+          const frags = a.split();
+          for (let i = 0; i < frags.length; i++) asteroids.push(frags[i]);
           if (!powerUpSpawned) {
             killsSinceSpawn++;
             const guaranteed = killsSinceSpawn >= 5;
@@ -495,8 +510,8 @@
         }
       }
     }
-    asteroids = asteroids.filter((a) => !a.dead).concat(newAsteroids);
-    bullets = bullets.filter((b) => !b.dead);
+    compact(asteroids);
+    compact(bullets);
 
     // Nave vs asteroide
     if (ship.invincible <= 0) {
@@ -580,20 +595,31 @@
 
   // ── Loop principal ────────────────────────────────────────────────────────────
   let lastTime = null;
+  let rafId = null;
 
   function loop(ts) {
     if (window.gamePaused) {
-      requestAnimationFrame(loop);
+      dirty = true;
+      rafId = requestAnimationFrame(loop);
       return;
     }
     const dt = lastTime === null ? 0 : Math.min((ts - lastTime) / 1000, 0.05);
     lastTime = ts;
     update(dt);
-    draw();
+    if (dirty) {
+      draw();
+      dirty = false;
+    }
     window.gameState = { score, lives, level, gameOver: lives <= 0 };
-    requestAnimationFrame(loop);
+    rafId = requestAnimationFrame(loop);
   }
 
+  window.destroyGame = function () {
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    window.removeEventListener("keydown", onKeyDown);
+    window.removeEventListener("keyup", onKeyUp);
+  };
+
   initGame();
-  requestAnimationFrame(loop);
+  rafId = requestAnimationFrame(loop);
 })();
