@@ -62,7 +62,7 @@ export default function HallClient({
     if (row.rank === 1) classes.push("top1");
     else if (row.rank === 2) classes.push("top2");
     else if (row.rank === 3) classes.push("top3");
-    if (user && row.name === user.name) classes.push("you");
+    if (user && row.name === user.display_name) classes.push("you");
     return classes.join(" ");
   }
 
@@ -97,7 +97,7 @@ export default function HallClient({
             if (!row) return <div key={i} />;
             const medal =
               row.rank === 1 ? "gold" : row.rank === 2 ? "silver" : "bronze";
-            const isUser = user && row.name === user.name;
+            const isUser = user && row.name === user.display_name;
             return (
               <div key={row.rank} className={`podium-slot ${medal}`}>
                 <div className="rank-num">#{row.rank}</div>
@@ -136,7 +136,7 @@ export default function HallClient({
             <span>FECHA</span>
           </div>
           {rows.map((row, idx) => {
-            const isUser = user && row.name === user.name;
+            const isUser = user && row.name === user.display_name;
             return (
               <div
                 key={idx}
