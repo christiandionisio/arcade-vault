@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { GAMES } from "@/app/data/games";
 import { useUser } from "@/components/UserProvider";
 
-export default function PlayPage({ params }: { params: Promise<{ id: string }> }) {
+export default function PlayPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const game = GAMES.find((g) => g.id === id);
   const { user } = useUser();
@@ -16,7 +20,7 @@ export default function PlayPage({ params }: { params: Promise<{ id: string }> }
   const [level, setLevel] = useState(1);
   const [paused, setPaused] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [playerName, setPlayerName] = useState(user?.name ?? "");
+  const [playerName, setPlayerName] = useState(user?.display_name ?? "");
   const [saved, setSaved] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -56,9 +60,17 @@ export default function PlayPage({ params }: { params: Promise<{ id: string }> }
     setSaved(true);
   }
 
-  if (!game) return <main className="av-main" style={{ padding: "48px 32px", textAlign: "center" }}>
-    <p className="pixel neon-magenta" style={{ fontSize: "12px" }}>JUEGO NO ENCONTRADO</p>
-  </main>;
+  if (!game)
+    return (
+      <main
+        className="av-main"
+        style={{ padding: "48px 32px", textAlign: "center" }}
+      >
+        <p className="pixel neon-magenta" style={{ fontSize: "12px" }}>
+          JUEGO NO ENCONTRADO
+        </p>
+      </main>
+    );
 
   return (
     <main className="av-main fade-in">
@@ -67,7 +79,9 @@ export default function PlayPage({ params }: { params: Promise<{ id: string }> }
         <div className="player-hud">
           <div className="hud-stat">
             <span className="l">JUGADOR</span>
-            <span className="v" style={{ fontSize: "12px" }}>{user?.name ?? "GUEST"}</span>
+            <span className="v" style={{ fontSize: "12px" }}>
+              {user?.display_name ?? "GUEST"}
+            </span>
           </div>
           <div className="hud-stat">
             <span className="l">PUNTUACIÓN</span>
@@ -103,12 +117,17 @@ export default function PlayPage({ params }: { params: Promise<{ id: string }> }
         <div className="crt">
           <div className="crt-screen">
             {paused ? (
-              <div className="crt-content" style={{ flexDirection: "column", gap: "20px" }}>
-                <p className="pixel neon-yellow flicker" style={{ fontSize: "14px", letterSpacing: "0.2em" }}>EN PAUSA</p>
-                <button
-                  className="btn yellow"
-                  onClick={() => setPaused(false)}
+              <div
+                className="crt-content"
+                style={{ flexDirection: "column", gap: "20px" }}
+              >
+                <p
+                  className="pixel neon-yellow flicker"
+                  style={{ fontSize: "14px", letterSpacing: "0.2em" }}
                 >
+                  EN PAUSA
+                </p>
+                <button className="btn yellow" onClick={() => setPaused(false)}>
                   ▶ REANUDAR
                 </button>
               </div>
@@ -145,14 +164,19 @@ export default function PlayPage({ params }: { params: Promise<{ id: string }> }
                     placeholder="TU NOMBRE..."
                     maxLength={12}
                     value={playerName}
-                    onChange={(e) => setPlayerName(e.target.value.toUpperCase())}
+                    onChange={(e) =>
+                      setPlayerName(e.target.value.toUpperCase())
+                    }
                   />
                 </div>
                 <div className="actions">
                   <button className="btn yellow" onClick={handleSave}>
                     GUARDAR PUNTUACIÓN
                   </button>
-                  <button className="btn ghost" onClick={() => router.push(`/games/${id}`)}>
+                  <button
+                    className="btn ghost"
+                    onClick={() => router.push(`/games/${id}`)}
+                  >
                     SALIR
                   </button>
                 </div>
@@ -161,10 +185,22 @@ export default function PlayPage({ params }: { params: Promise<{ id: string }> }
               <>
                 <span className="toast-saved">▸ PUNTUACIÓN GUARDADA_</span>
                 <div className="actions" style={{ marginTop: "24px" }}>
-                  <button className="btn" onClick={() => { setScore(0); setLevel(1); setLives(3); setSaved(false); setShowModal(false); }}>
+                  <button
+                    className="btn"
+                    onClick={() => {
+                      setScore(0);
+                      setLevel(1);
+                      setLives(3);
+                      setSaved(false);
+                      setShowModal(false);
+                    }}
+                  >
                     JUGAR DE NUEVO
                   </button>
-                  <button className="btn ghost" onClick={() => router.push("/hall")}>
+                  <button
+                    className="btn ghost"
+                    onClick={() => router.push("/hall")}
+                  >
                     VER SALÓN
                   </button>
                 </div>

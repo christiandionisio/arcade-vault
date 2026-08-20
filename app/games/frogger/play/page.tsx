@@ -34,8 +34,12 @@ export default function FroggerPlayPage() {
 
   useEffect(() => {
     setIsMobile(window.matchMedia("(pointer: coarse)").matches);
-    const saved = localStorage.getItem("av_player_name");
-    if (saved) setName(saved);
+    if (user?.display_name) {
+      setName(user.display_name);
+    } else {
+      const saved = localStorage.getItem("av_player_name");
+      if (saved) setName(saved);
+    }
     const savedSkin = localStorage.getItem("frogger-skin");
     if (savedSkin) setActiveSkin(savedSkin);
   }, []);
@@ -162,7 +166,7 @@ export default function FroggerPlayPage() {
           <div className="hud-stat">
             <span className="l">JUGADOR</span>
             <span className="v" style={{ fontSize: "12px" }}>
-              {user?.name ?? "GUEST"}
+              {user?.display_name ?? "GUEST"}
             </span>
           </div>
           <div className="hud-stat">

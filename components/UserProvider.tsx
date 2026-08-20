@@ -7,6 +7,7 @@ type User = {
   id: string;
   email: string;
   display_name: string;
+  avatar_url: string | null;
 };
 
 type UserCtx = {
@@ -55,6 +56,7 @@ export default function UserProvider({
           id: su.id,
           email: su.email ?? "",
           display_name: deriveDisplayName(su, provider),
+          avatar_url: su.user_metadata?.avatar_url ?? null,
         });
       }
       setLoading(false);
@@ -70,6 +72,7 @@ export default function UserProvider({
           id: su.id,
           email: su.email ?? "",
           display_name: deriveDisplayName(su, provider),
+          avatar_url: su.user_metadata?.avatar_url ?? null,
         });
       } else {
         setUser(null);

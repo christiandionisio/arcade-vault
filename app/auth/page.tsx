@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { useUser } from "@/components/UserProvider";
 
 export default function AuthPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { user, loading: authLoading } = useUser();
+
+  useEffect(() => {
+    if (!authLoading && user) router.replace("/");
+  }, [authLoading, user]);
 
   const [tab, setTab] = useState<"login" | "registro">("login");
   const [name, setName] = useState("");
