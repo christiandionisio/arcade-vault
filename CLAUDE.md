@@ -36,6 +36,7 @@ Currently integrated games: **Asteroids, Tetris, Arkanoid, Snake** (canvas/JS va
 - **`skin-designer`** — dado un slug, implementa ≥3 skins en `game.js` + selector en `play/page.tsx`.
 - **`game-performance`** — dado un slug, audita rendimiento vs spec 12 y aplica arreglos.
 - **`mobile-porter`** — audita y arregla la experiencia mobile de las play pages (contrato spec 10).
+- **`security-auditor`** — audita seguridad DB (RLS, funciones SECURITY DEFINER, advisors) + App (headers, rutas, score forgery). Read-only, reporta con severidad. Contrato spec 14.
 
 Detalle completo de cada uno en `.claude/agents/<nombre>.md`.
 
