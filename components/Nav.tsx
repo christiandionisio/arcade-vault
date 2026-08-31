@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUser } from "./UserProvider";
 
 export default function Nav() {
-  const { user, logout } = useUser();
+  const { user, loading, logout } = useUser();
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const links = [
     { href: "/", label: "Inicio" },
@@ -19,15 +21,31 @@ export default function Nav() {
   ];
 
   const isActive = (href: string) => {
-    if (href === "/games") return pathname === "/games" || pathname.startsWith("/games/");
+    if (href === "/games")
+      return pathname === "/games" || pathname.startsWith("/games/");
     if (href === "/") return pathname === "/";
     return pathname === href;
   };
 
-  function handleLogout() {
-    logout();
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  async function handleLogout() {
+    await logout();
+    setDropdownOpen(false);
     setOpen(false);
     router.push("/");
+    router.refresh();
   }
 
   return (
@@ -43,7 +61,11 @@ export default function Nav() {
 
         <div className="links">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className={isActive(l.href) ? "active" : ""}>
+            <Link
+              key={l.href}
+              href={l.href}
+              className={isActive(l.href) ? "active" : ""}
+            >
               {l.label}
             </Link>
           ))}
@@ -56,10 +78,42 @@ export default function Nav() {
           <span>CRÉDITOS · 03</span>
         </div>
 
-        {user ? (
-          <button className="btn ghost auth-btn" onClick={handleLogout}>
-            {user.name} ▾
-          </button>
+        {loading ? (
+          <div className="nav-auth-skeleton" />
+        ) : user ? (
+          <div className="nav-dropdown" ref={dropdownRef}>
+            <button
+              className="btn ghost auth-btn nav-user-btn"
+              onClick={() => setDropdownOpen((v) => !v)}
+            >
+              <img
+                className="nav-avatar"
+                src={
+                  user.avatar_url ??
+                  `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(user.email)}`
+                }
+                alt={user.display_name}
+                width={28}
+                height={28}
+              />
+              <span className="nav-username">{user.display_name}</span>
+              <span>▾</span>
+            </button>
+            {dropdownOpen && (
+              <div className="nav-dropdown-menu">
+                <Link
+                  href="/auth"
+                  className="nav-dropdown-item"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  Perfil
+                </Link>
+                <button className="nav-dropdown-item" onClick={handleLogout}>
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <Link href="/auth" className="auth-btn">
             <button className="btn">Iniciar Sesión</button>
@@ -75,9 +129,17 @@ export default function Nav() {
         </button>
       </nav>
 
-      <div className={`av-mobile-backdrop${open ? " open" : ""}`} onClick={() => setOpen(false)} />
+      <div
+        className={`av-mobile-backdrop${open ? " open" : ""}`}
+        onClick={() => setOpen(false)}
+      />
       <aside className={`av-mobile-panel${open ? " open" : ""}`}>
-        <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>MENÚ</div>
+        <div
+          className="pixel neon-cyan"
+          style={{ fontSize: 11, marginBottom: 16 }}
+        >
+          MENÚ
+        </div>
         {links.map((l) => (
           <Link
             key={l.href}
@@ -88,15 +150,41 @@ export default function Nav() {
             {l.label}
           </Link>
         ))}
-        <Link
-          href="/auth"
-          className={pathname === "/auth" ? "active" : ""}
-          onClick={() => setOpen(false)}
-        >
-          {user ? "Cuenta" : "Iniciar Sesión"}
-        </Link>
+        {user ? (
+          <>
+            <Link
+              href="/auth"
+              className={pathname === "/auth" ? "active" : ""}
+              onClick={() => setOpen(false)}
+            >
+              Perfil
+            </Link>
+            <button
+              className="btn ghost"
+              style={{ textAlign: "left", fontSize: "10px", marginTop: "8px" }}
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/auth"
+            className={pathname === "/auth" ? "active" : ""}
+            onClick={() => setOpen(false)}
+          >
+            Iniciar Sesión
+          </Link>
+        )}
         <div style={{ flex: 1 }} />
-        <div className="pixel" style={{ fontSize: 9, color: "var(--ink-faint)", letterSpacing: "0.16em" }}>
+        <div
+          className="pixel"
+          style={{
+            fontSize: 9,
+            color: "var(--ink-faint)",
+            letterSpacing: "0.16em",
+          }}
+        >
           CRÉDITOS · 03
         </div>
       </aside>

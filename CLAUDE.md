@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Arcade Vault — online gaming platform where players compete for points on retro arcade games. Next.js app backed by Supabase. Built with Spec Driven Design: each feature is a numbered spec in `specs/`, authored with `/spec` and implemented with `/spec-impl`.
 
-Currently integrated games: **Asteroids, Tetris, Arkanoid, Snake** (canvas/JS vanilla, hosted in `public/games/<slug>/`). Each has a library card, detail page, playable page, and Supabase-backed leaderboard.
+Currently integrated games: **Asteroids, Tetris, Arkanoid, Snake** (canvas/JS vanilla en `public/games/<slug>/`) y **Frogger** (componente React `components/games/FroggerGame.tsx`, patrón alterno — no usa `public/games/`). Each has a library card, detail page, playable page, and Supabase-backed leaderboard.
 
 ## Stack & Versions
 
@@ -27,13 +27,17 @@ Currently integrated games: **Asteroids, Tetris, Arkanoid, Snake** (canvas/JS va
 - **`/spec`** — author a numbered spec in `specs/`.
 - **`/spec-impl`** — implement a spec step by step (mark each check, don't skip steps without explicit OK).
 - **`/add-game`** — generate a spec to integrate a new canvas/JS game with leaderboard + platform HUD, following the Asteroids pattern. Produces a spec, does not write code.
+- **`/spec-impl-game`** — como `/spec-impl` pero para specs de juegos; al terminar detona `skin-designer` y luego `mobile-porter` en secuencia.
 
 ## Agents
 
-- **`game-planner`** — upstream de `/add-game`. Sugiere el próximo juego retro que encaja con la plataforma, sin repetir sugerencias previas. Mantiene historial en `references/suggested_games.md`.
-- **`game-jam`** — dado un TEMA, elige un juego retro autónomamente y genera 2 specs completos en `specs/game-jam/{game-id}/` (mecánica + plataforma/leaderboard). Lee historial para no repetir.
-- **`skin-designer`** — dado el slug de un juego, implementa directamente ≥3 skins (`classic`, `retro`, `neon` + extras) en `game.js` y añade el selector en `play/page.tsx`. Mantiene estado en `references/game_with_thene.md`. Aplica cambios reales, no genera specs.
-- **`game-performance`** — dado el slug de un juego, audita su rendimiento contra el patrón del spec 12 (offscreen canvas, dirty flag, indexación O(1), cero allocations/useState por frame, cleanup de RAF/timers) y aplica los arreglos directamente en el archivo del juego. 1 juego por run. Aplica cambios reales, no genera specs.
+- **`game-planner`** — sugiere el próximo juego retro que encaja, sin repetir. Upstream de `/add-game`.
+- **`game-jam`** — dado un TEMA, elige juego y genera 2 specs en `specs/game-jam/{game-id}/`.
+- **`skin-designer`** — dado un slug, implementa ≥3 skins en `game.js` + selector en `play/page.tsx`.
+- **`game-performance`** — dado un slug, audita rendimiento vs spec 12 y aplica arreglos.
+- **`mobile-porter`** — audita y arregla la experiencia mobile de las play pages (contrato spec 10).
+
+Detalle completo de cada uno en `.claude/agents/<nombre>.md`.
 
 ## MCP
 

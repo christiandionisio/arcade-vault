@@ -40,7 +40,7 @@ export default function ArkanoidPlayPage() {
   const [skins, setSkins] = useState<string[]>([]);
   const [activeSkin, setActiveSkin] = useState("classic");
   const [showModal, setShowModal] = useState(false);
-  const [playerName, setPlayerName] = useState(user?.name ?? "");
+  const [playerName, setPlayerName] = useState(user?.display_name ?? "");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -211,7 +211,7 @@ export default function ArkanoidPlayPage() {
           <div className="hud-stat">
             <span className="l">JUGADOR</span>
             <span className="v" style={{ fontSize: "12px" }}>
-              {user?.name ?? "GUEST"}
+              {user?.display_name ?? "GUEST"}
             </span>
           </div>
           <div className="hud-stat">
